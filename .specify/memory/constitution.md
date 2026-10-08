@@ -1,7 +1,12 @@
 <!--
 Sync Impact Report
 ==================
-Version change: 1.1.1 → 1.2.0 (MINOR: new exception to a MUST rule)
+Version change: 1.2.0 → 1.3.0 (MINOR: new technology rule)
+Modified sections:
+  - Technology & Platform Constraints — Android test fixtures (end-to-end signing verification)
+    are written in Kotlin in the top-level `android/` folder, never distributed with the plugin
+Templates requiring updates: none (plan-template Constitution Check is derived at plan time)
+Previous amendment 1.1.1 → 1.2.0 (MINOR: new exception to a MUST rule)
 Modified principles:
   - I. English-Only Repository Content — added an exception for test string literals that
     exercise non-English / non-ASCII input; such literals are written as readable characters
@@ -133,6 +138,11 @@ Rationale: WinForms UI is hard to test; isolating logic keeps the critical paths
 
 - Language: C#, targeting the .NET Framework version supported by the KeePass 2.x build in the
   submodule.
+- Android test fixtures — sample apps that exist only to verify end-to-end signing (key
+  generation → secret export → CI build and signing) — MUST be written in Kotlin and live in the
+  top-level `android/` folder, built with the Gradle wrapper. They are never distributed with the
+  plugin, MUST NOT be referenced by the .NET solution, and follow Principles I and III (no secrets
+  or signing material committed; `keystore.properties` and keystores are git-ignored).
 - Distribution: a plugin DLL (or `.plgx` if adopted) loadable by stock KeePass 2.x on Windows.
 - Third-party libraries MUST be compatible with the target framework, permissively licensed,
   and bundled with the plugin; preference is given to the .NET base library and KeePass APIs.
@@ -158,4 +168,4 @@ Rationale: WinForms UI is hard to test; isolating logic keeps the critical paths
   adding principles or materially expanding guidance, PATCH for clarifications and wording.
 - Reviews of specs, plans, and code MUST verify compliance with these principles.
 
-**Version**: 1.2.0 | **Ratified**: 2026-10-08 | **Last Amended**: 2026-10-08
+**Version**: 1.3.0 | **Ratified**: 2026-10-08 | **Last Amended**: 2026-10-08

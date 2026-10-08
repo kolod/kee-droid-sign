@@ -82,6 +82,22 @@ namespace KeeDroidSign.Core.Tests.Keystore
         }
 
         [Fact]
+        public void ToX509Name_EncodesMostGeneralAttributeFirst_LikeKeytool()
+        {
+            var dn = new DistinguishedName
+            {
+                CommonName = "Jane", OrganizationalUnit = "Mobile", Organization = "Acme",
+                Locality = "Kyiv", State = "Kyiv", Country = "UA",
+            };
+
+            var oids = dn.ToX509Name().GetOidList();
+
+            // keytool encodes C, ST, L, O, OU, CN, so tools print "CN=..., O=..., C=..." (RFC 2253).
+            Assert.Equal(new[] { X509Name.C, X509Name.ST, X509Name.L, X509Name.O, X509Name.OU, X509Name.CN }, oids);
+            Assert.Equal("CN=Jane,OU=Mobile,O=Acme,L=Kyiv,ST=Kyiv,C=UA", dn.ToX509Name().ToString(true, X509Name.DefaultSymbols));
+        }
+
+        [Fact]
         public void EmptyOptionalFields_AreOmitted()
         {
             var dn = new DistinguishedName { CommonName = "Jane", Organization = "" };

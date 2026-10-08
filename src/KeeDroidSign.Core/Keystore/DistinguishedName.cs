@@ -40,13 +40,14 @@ namespace KeeDroidSign.Core.Keystore
 
         /// <summary>
         /// Builds the subject from ordered OID/value pairs, so user input is never parsed and needs
-        /// no escaping.
+        /// no escaping. Encoded most general first (C ... CN), as keytool does, so tools display
+        /// it as "CN=..., O=..., C=...".
         /// </summary>
         internal X509Name ToX509Name()
         {
             var oids = new List<DerObjectIdentifier>();
             var values = new List<string>();
-            foreach (var (oid, _, value) in Attributes())
+            foreach (var (oid, _, value) in Attributes().Reverse())
             {
                 oids.Add(oid);
                 values.Add(value);
