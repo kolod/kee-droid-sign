@@ -8,5 +8,7 @@
     <Company>KeeDroidSign</Company>
     <Product>KeeDroidSign</Product>
     <Version>0.1.0</Version>
+    <Copyright>Copyright (C) 2026 Oleksandr Kolodkin. Licensed under GPL-2.0-or-later.</Copyright>
+    <PackageLicenseExpression>GPL-2.0-or-later</PackageLicenseExpression>
   </PropertyGroup>
 </Project>
