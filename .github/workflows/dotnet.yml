@@ -6,10 +6,8 @@ on:
     paths-ignore:
       - "android/**"
       - "**/*.md"
+  # Always runs on pull requests: its "build" job is a required status check for main.
   pull_request:
-    paths-ignore:
-      - "android/**"
-      - "**/*.md"
 
 permissions:
   contents: read
