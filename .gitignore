@@ -1,0 +1,25 @@
+# Build output
+bin/
+obj/
+artifacts/
+TestResults/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# NuGet
+packages/
+
+# OS
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+
+# Local signing material (never commit keystores)
+*.jks
+*.keystore
