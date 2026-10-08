@@ -1,0 +1,3 @@
+[submodule "keepass"]
+	path = keepass
+	url = https://github.com/kolod/keepass.git
