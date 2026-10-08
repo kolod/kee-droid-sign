@@ -3,7 +3,8 @@
 A [KeePass 2.x](https://keepass.info/) plugin for managing Android app signing keys:
 
 - generates an Android signing key and a JKS keystore and stores them in the KeePass database;
-- exports the keystore and its credentials to a GitHub repository as GitHub Actions secrets;
+- exports the keystore and its credentials as GitHub Actions secrets, by default into a protected
+  GitHub environment (`release`) so that only the signing job can read them;
 - shows the SHA-256 certificate fingerprint (`B2:71:2B:...`) required by the Android Developer
   Console.
 
@@ -31,8 +32,18 @@ Requirements: KeePass 2.61 or newer, .NET Framework 4.8.
 - **Tools → DroidSign → Add key to existing app…** — adds another private key (e.g. a new upload key)
   to the app's `.jks`; the previous file stays in the entry history.
 - Open a key entry (`1`, `2`, …) → **DroidSign** tab — display name, package ID and SHA-256 fingerprint with **Copy**
-  (for the Android Developer Console) and **Export to GitHub** (the four Actions secrets below).
-- **Tools → Options → DroidSign** — root group, GitHub token entry, key defaults, secret names.
+  (for the Android Developer Console) and **Export to GitHub**, which opens the export wizard:
+  1. **Target** — the default from the settings, repository secrets, or another environment for
+     this app (stored in the keystore entry's `DroidSign.ExportTarget` field).
+  2. **Review** — the plugin checks the repository and lists what it found (does the environment
+     exist and which branches/tags may use it, is the default branch protected, can anyone create
+     `v*` tags, which secrets will be created or overwritten, old repository-level copies) and
+     proposes actions: create/restrict the environment (with selectable branch/tag patterns), export
+     the secrets, delete the repository-level copies.
+  3. **Results** — **Run** executes the selected actions and shows what happened. Nothing on GitHub
+     changes before **Run**.
+- **Tools → Options → DroidSign** — root group, GitHub token entry, key defaults, secret names and
+  the default **GitHub environment**.
 
 After a key is created or added, KeePass saves the database right away (its normal save:
 synchronization and triggers apply). To save manually instead, clear **Save the database
@@ -63,7 +74,7 @@ title is its number and the alias inside the `.jks`, so do not rename key entrie
 | `build/` | `Build-KeePassReference.ps1`, `Build-Plgx.ps1`, `Install-Plugin.ps1`, `Update-Strings.ps1` |
 | `tests/KeeDroidSign.LiveTests/` | Opt-in end-to-end test against real GitHub (skipped without a token) |
 | `android/` | "Hello, World!" Kotlin app used only as a signing test fixture |
-| `.github/workflows/android-sign.yml` | Builds and signs the sample APK from the repository secrets |
+| `.github/workflows/android-sign.yml` | Builds and signs the sample APK with the secrets of the `release` environment |
 | `.github/workflows/dotnet.yml` | Builds, tests and packages the plugin (PLGX artifact) |
 | `.github/workflows/release.yml` | Publishes a GitHub Release with `KeeDroidSign.plgx` for a `vX.Y.Z` tag |
 | `keepass/` | KeePass source code as a git submodule (read-only reference) |
@@ -99,6 +110,40 @@ User-visible strings live in `src/KeeDroidSign/Properties/Strings.resx`; after e
 No Java is needed. If a JDK is installed (found via `KDS_KEYTOOL`, `JAVA_HOME` or `PATH`), one extra
 test checks that the JDK `keytool` opens the generated keystores; otherwise that test is skipped.
 
+## GitHub environment
+
+Repository-level secrets can be read by every workflow on every branch. A GitHub *environment*
+limits its secrets to jobs that declare it (`environment: release`) **and** run from a branch or tag
+its deployment policy allows. KeeDroidSign therefore exports into an environment by default.
+
+- **Default:** `release` for new installations. Installations upgraded from 1.0.x keep exporting
+  repository secrets until you set **Tools → Options → DroidSign → GitHub environment**; an empty
+  value means repository secrets. Each app can override the default on the export wizard's
+  **Target** page.
+- **The environment must exist.** Exporting never creates or changes environments. If it is
+  missing, the wizard proposes **Create environment**; otherwise create it on GitHub: repository →
+  **Settings → Environments → New environment** `release` → **Deployment branches and tags: Selected
+  branches and tags** → add your **default branch** (e.g. `main` or `master`) and `v*` (tag).
+  Optionally add required reviewers.
+- **Create / restrict environment** in the wizard does the same through the API, proposing your
+  repository's real default branch and `v*`; untick what you do not want. It needs the
+  *Administration* permission, which also allows changing other repository settings, so grant it
+  only if you want this convenience (a separate token for it is fine). Existing reviewers, wait
+  timer and branch patterns are kept.
+- **An environment only protects as much as the refs it allows.** The wizard warns when:
+  - the environment allows every branch;
+  - the default branch is not protected (no ruleset requiring pull requests or restricting updates,
+    no branch protection) — anyone with write access could push a workflow there that reads the key;
+  - creating `v*` tags is not restricted by a tag ruleset — anyone with write access could tag any
+    commit, including one with a malicious workflow.
+  Fix these in the repository's **Settings → Rules → Rulesets** (or drop the `v*` pattern if you
+  sign only from the default branch).
+- **Old repository-level copies:** when exporting into an environment, the wizard proposes deleting
+  repository secrets with the same names (they stay readable by every workflow); they are deleted
+  only after the export succeeded.
+- **Private repositories** need GitHub Pro, Team or Enterprise for environments; on GitHub Free use
+  repository secrets (wizard **Target** page → *Repository secrets*).
+
 ## Core capabilities
 
 | Area | Entry point |
@@ -106,14 +151,14 @@ test checks that the JDK `keytool` opens the generated keystores; otherwise that
 | Passwords | `Passwords.PasswordGenerator` — CSPRNG, never produces `$`, backtick, `\`, quotes or whitespace |
 | Keystore | `Keystore.KeystoreGenerator` — RSA 4096 / SHA-256 / 30 years, JKS, fully in memory |
 | Fingerprint | `Fingerprints.CertificateFingerprint` — SHA-256 or SHA-1, `AA:BB:...` format |
-| GitHub | `GitHub.GitHubClient`, `GitHub.SecretExporter` — token check, repository access check, create/update secrets |
+| GitHub | `GitHub.GitHubClient`, `GitHub.SecretExporter`, `GitHub.RepositoryInspector`, `GitHub.EnvironmentProtector` — repository/environment secrets, repository inspection (default branch, rulesets, environment), cleanup of repository copies, environment protection |
 
-Secrets are encrypted with the repository public key (libsodium sealed box) before they leave the
-machine. Existing secrets are overwritten only after explicit confirmation.
+Secrets are encrypted with the repository's or environment's public key (libsodium sealed box)
+before they leave the machine. Existing secrets are overwritten only after explicit confirmation.
 
 ## GitHub Actions contract
 
-The export writes these repository secrets (names are configurable):
+The export writes these secrets into the environment (or the repository; names are configurable):
 
 | Secret | Value |
 |--------|-------|
@@ -122,11 +167,20 @@ The export writes these repository secrets (names are configurable):
 | `ANDROID_KEY_ALIAS` | key alias |
 | `ANDROID_KEY_PASSWORD` | key password |
 
-Example workflow steps that consume them (as in `.github/workflows/android-sign.yml`). Pass
-secrets through `env:` — never write `${{ secrets.X }}` inside a `run:` script, where a value
+Example workflow steps that consume them (as in `.github/workflows/android-sign.yml`). The signing
+job must declare the environment; it then receives the secrets only when it runs from a ref the
+environment allows (e.g. the default branch or a `v*` tag). Build pull requests without signing (as the
+sample workflow's `build-debug` job does).
+Pass secrets through `env:` — never write `${{ secrets.X }}` inside a `run:` script, where a value
 containing `$(...)`, backticks or quotes would be executed as shell code:
 
 ```yaml
+  sign:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      # ... checkout, JDK, Gradle ...
       - name: Decode signing keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -157,9 +211,9 @@ also work with simpler consumers.
 
 ## Protecting the signing key in CI
 
-Repository secrets can be read by **any workflow that runs on the repository's branches** — a
-merged malicious pull request or a compromised third-party action could send the key elsewhere.
-To limit the damage:
+Repository secrets can be read by **any workflow that runs on the repository's branches** — anyone
+who can push a branch, a merged malicious pull request or a compromised third-party action could
+send the key elsewhere. To limit the damage:
 
 - **Use Google Play App Signing.** Google keeps the app signing key; the key you export is only
   the *upload key*, which Google support can reset if it leaks. Never put the app signing key of a
@@ -167,10 +221,9 @@ To limit the damage:
 - **Protect `main`**: require pull requests and reviews, so workflow changes cannot reach the
   secrets unreviewed.
 - **Pin third-party actions by commit SHA** (this repository does; Dependabot proposes updates).
-- **Move the secrets into a GitHub environment** (e.g. `release`) with required reviewers and use
-  `environment: release` in the signing job; then every run that can read the key needs an
-  approval. The plugin currently writes repository-level secrets; after exporting, recreate them in
-  the environment with the same names and delete the repository-level copies.
+- **Keep the secrets in a GitHub environment** limited to the protected default branch and `v*` (the plugin's default,
+  see [GitHub environment](#github-environment)) and use `environment: release` in the signing job.
+  Add required reviewers if every signing run should need an approval.
 - **Run signing only where needed** (tags or manual dispatch), never on pull requests from forks
   (GitHub withholds secrets from them by default).
 
@@ -193,9 +246,12 @@ only for HTTPS calls to `api.github.com` and is never written to logs or plugin 
 
    | Permission | Access | Needed for |
    |------------|--------|------------|
-   | Secrets | Read and write | exporting the signing secrets |
-   | Metadata | Read-only | selected automatically |
-   | Actions | Read and write | end-to-end test only (start the workflow, download artifacts) |
+   | Environments | Read and write | exporting into an environment (default) |
+   | Actions | Read-only | reading which branches/tags may use the environment (otherwise "could not be checked"); Read and write for the end-to-end test (start the workflow, download artifacts) |
+   | Secrets | Read and write | exporting repository secrets, finding and deleting old repository-level copies |
+   | Contents | Read-only | optional: checking classic branch protection (rulesets are read with Metadata) |
+   | Metadata | Read-only | selected automatically; default branch, rulesets |
+   | Administration | Read and write | **only** for **Create / restrict environment** in the wizard — leave it out otherwise |
 
 6. Click **Generate token** and copy it immediately — GitHub shows it only once.
 
@@ -229,7 +285,7 @@ The `android/` sample app and the **Sign sample APK** workflow verify the whole 
 repository:
 
 1. the live test generates a throwaway key with `KeeDroidSign.Core`;
-2. exports it to this repository's Actions secrets (the four secrets above);
+2. exports it into this repository's `release` environment (the four secrets above);
 3. dispatches the workflow, which builds the release APK, verifies its signature with `apksigner`
    and publishes `sample-apk` and `signing-report` artifacts;
 4. passes only if the APK's signing certificate fingerprint equals the generated key's.
@@ -248,12 +304,13 @@ See [GitHub token](#github-token) for how to create the token and which permissi
 
 | Variable | Default | Meaning |
 |----------|---------|---------|
-| `KDS_LIVE_GITHUB_TOKEN` | — (test skipped) | fine-grained: *Actions* RW, *Secrets* RW, *Metadata* R; classic: `repo`, `workflow` |
+| `KDS_LIVE_GITHUB_TOKEN` | — (test skipped) | fine-grained: *Environments* RW, *Actions* RW, *Metadata* R (*Secrets* RW for `KDS_LIVE_ENVIRONMENT=-`); classic: `repo`, `workflow` |
 | `KDS_LIVE_REPOSITORY` | `kolod/kee-droid-sign` | target repository |
+| `KDS_LIVE_ENVIRONMENT` | `release` | environment the secrets are exported into; `-` = repository secrets |
 | `KDS_LIVE_REF` | `main` | ref the workflow runs on |
 | `KDS_LIVE_TIMEOUT_MINUTES` | `20` | maximum wait |
 
-> **Note:** every live run replaces the repository's signing secrets with a new throwaway key.
+> **Note:** every live run replaces the signing secrets with a new throwaway key.
 > Never point it at a repository whose secrets hold a real release key.
 
 Build the sample app locally (Android SDK and JDK 21 required):

@@ -1,7 +1,9 @@
 name: Sign sample APK
 
-# Builds the android/ test fixture and signs it with the key stored in the repository secrets
-# exported by KeeDroidSign. Contract: specs/002-android-signing-e2e/contracts/workflow.md
+# Builds the android/ test fixture and signs it with the key that KeeDroidSign exported into the
+# "release" environment. The environment allows only branch main and tags v*, so a workflow pushed
+# to any other branch cannot read the signing secrets.
+# Contracts: specs/002-android-signing-e2e/contracts/workflow.md, specs/005-environment-secrets/contracts/plugin-ui.md
 run-name: Sign sample APK ${{ inputs.request_id || github.sha }}
 
 on:
@@ -59,7 +61,7 @@ jobs:
       # A green pull-request run must not be mistaken for a verified signing run (FR-008).
       - name: Explain skipped signing
         run: |
-          msg="Signing skipped: pull requests have no access to repository secrets. Only the debug APK was built; run the workflow manually on main to sign."
+          msg="Signing skipped: pull requests have no access to the signing secrets (environment release). Only the debug APK was built; run the workflow manually on main to sign."
           echo "::notice title=Signing skipped::$msg"
           echo "### Signing skipped" >> "$GITHUB_STEP_SUMMARY"
           echo "$msg" >> "$GITHUB_STEP_SUMMARY"
@@ -67,6 +69,9 @@ jobs:
   sign:
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
+    # The signing secrets are environment secrets: only jobs that declare the environment, and run
+    # from a ref its deployment policy allows (main, v*), can read them.
+    environment: release
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -95,7 +100,7 @@ jobs:
           missing=0
           for name in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
             if [ -z "${!name}" ]; then
-              echo "::error::Missing secret $name"
+              echo "::error::Missing secret $name in environment release"
               missing=1
             fi
           done
