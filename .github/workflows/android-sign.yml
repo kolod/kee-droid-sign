@@ -125,16 +125,22 @@ jobs:
         run: |
           apksigner="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)/apksigner"
           apk=app/build/outputs/apk/release/app-release.apk
-          "$apksigner" verify --print-certs "$apk" > apksigner.txt
+          echo "apksigner $("$apksigner" version)"
+          "$apksigner" verify --verbose --print-certs "$apk" > apksigner.txt
+          # Certificates are public data; keep the raw output for diagnosis.
+          cat apksigner.txt
 
-          signers=$(grep -c '^Signer #[0-9]* certificate DN:' apksigner.txt || true)
+          # Signer labels differ between build-tools versions ("Signer #1 ..." or
+          # "Signer (minSdkVersion=..., maxSdkVersion=...) ..."), so count distinct certificates.
+          digests=$(grep -E 'certificate SHA-256 digest: [0-9a-fA-F]{64}$' apksigner.txt \
+            | awk '{print tolower($NF)}' | sort -u)
+          signers=$(printf '%s' "$digests" | grep -c . || true)
           if [ "$signers" -ne 1 ]; then
-            echo "::error::Expected exactly one signer, found $signers"
+            echo "::error::Expected exactly one signing certificate, found $signers"
             exit 1
           fi
 
-          sha256=$(grep -m1 '^Signer #1 certificate SHA-256 digest:' apksigner.txt \
-            | awk '{print $NF}' | tr 'a-f' 'A-F' | sed 's/../&:/g; s/:$//')
+          sha256=$(printf '%s' "$digests" | tr 'a-f' 'A-F' | sed 's/../&:/g; s/:$//')
           if [ "${#sha256}" -ne 95 ]; then
             echo "::error::Could not read the SHA-256 certificate digest"
             exit 1
