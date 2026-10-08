@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>KeeDroidSign</RootNamespace>
+    <!-- KeePass compiles the PLGX with the .NET Framework's built-in compiler: C# 5 only. -->
+    <LangVersion>5</LangVersion>
+    <AssemblyName>KeeDroidSign</AssemblyName>
+    <!-- Assembly attributes (incl. AssemblyProduct "KeePass Plugin") live in Properties/AssemblyInfo.cs,
+         because KeePass compiles the PLGX from source and would not see MSBuild-generated ones. -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <!-- Built from the keepass/ submodule with the official public key: build/Build-KeePassReference.ps1 -->
+    <KeePassReference Condition="'$(KeePassReference)' == ''">$(MSBuildThisFileDirectory)..\..\artifacts\keepass-ref\KeePass.exe</KeePassReference>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="KeePass">
+      <HintPath>$(KeePassReference)</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\KeeDroidSign.Core\KeeDroidSign.Core.csproj" />
+  </ItemGroup>
+
+
+  <Target Name="CheckKeePassReference" BeforeTargets="ResolveAssemblyReferences">
+    <Error Condition="!Exists('$(KeePassReference)')"
+           Text="KeePass reference not found at '$(KeePassReference)'. Run build/Build-KeePassReference.ps1 first (or pass /p:KeePassReference=path\to\KeePass.exe)." />
+  </Target>
+
+</Project>
