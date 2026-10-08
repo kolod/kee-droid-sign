@@ -7,7 +7,7 @@
     <Deterministic>true</Deterministic>
     <Company>KeeDroidSign</Company>
     <Product>KeeDroidSign</Product>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <Copyright>Copyright (C) 2026 Oleksandr Kolodkin. Licensed under GPL-2.0-or-later.</Copyright>
     <PackageLicenseExpression>GPL-2.0-or-later</PackageLicenseExpression>
   </PropertyGroup>
