@@ -10,6 +10,6 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyProduct("KeePass Plugin")]
 [assembly: AssemblyCopyright("Copyright (C) 2026 Oleksandr Kolodkin. Licensed under GPL-2.0-or-later.")]
 [assembly: ComVisible(false)]
-[assembly: AssemblyVersion("1.0.1.0")]
-[assembly: AssemblyFileVersion("1.0.1.0")]
+[assembly: AssemblyVersion("1.1.0.0")]
+[assembly: AssemblyFileVersion("1.1.0.0")]
 [assembly: InternalsVisibleTo("KeeDroidSign.Tests")]
