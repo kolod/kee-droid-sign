@@ -49,8 +49,8 @@ DroidSign/                              root group (configurable)
     └── 2                               another key in the same .jks, alias "2"
 ```
 
-The entries carry `DroidSign.*` custom fields so the plugin recognises them even if you rename
-them; the key number in those fields is the alias inside the `.jks`.
+The entries carry a `DroidSign.Role` custom field so the plugin recognises them. A key entry's
+title is its number and the alias inside the `.jks`, so do not rename key entries.
 
 ## Repository layout
 

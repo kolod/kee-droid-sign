@@ -39,7 +39,7 @@ key's certificate subject, key size/validity from settings. Shows the number the
 | Display name | title of the keystore entry + **Copy** |
 | Package ID | `<package id>` (group name) + **Copy** |
 | SHA-256 | `AA:BB:…` + **Copy** |
-| Repository | from keystore entry URL |
+| Repository | `https://github.com/<owner>/<name>` link built from the parsed URL (opens in the system browser; plain text if the URL is not a GitHub repository), with **Export to GitHub** on the same row |
 | **Export to GitHub** | enabled when repository, attachment and token entry are available; otherwise disabled with the reason as tooltip/label |
 
 Export flow: plan → if conflicts, `AskYesNo` listing names to overwrite → export → result list

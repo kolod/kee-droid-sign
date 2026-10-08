@@ -17,7 +17,7 @@
     │     Title            = "1"
     │     Password         = private key password          (protected)
     │     DroidSign.Role   = "key"
-    │     DroidSign.KeyNumber = "1"   → alias "1" inside the .jks
+    │     (the title "1" is the alias "1" inside the .jks)
     └── Key entry "2" …
 ```
 
@@ -29,7 +29,7 @@
 | PackageId | `^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$`, ≤ 255 chars |
 | Display name | non-empty, ≤ 100 chars |
 | Repository URL | parsable by `RepositoryTarget.Parse` (feature 001) |
-| KeyNumber | positive integer; next = max(existing KeyNumber, aliases in .jks) + 1 |
+| Key number (key entry title) | positive integer; next = max(existing titles, aliases in .jks) + 1; a key entry with a non-numeric title is ignored with a warning |
 | Keystore entries per app group | exactly 1 (more → first used + warning) |
 
 ### State transitions
