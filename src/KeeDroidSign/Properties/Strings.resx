@@ -68,7 +68,6 @@
   <data name="ButtonSelect" xml:space="preserve"><value>Select...</value></data>
   <data name="ButtonClear" xml:space="preserve"><value>Clear</value></data>
   <data name="OptionsPasswordLength" xml:space="preserve"><value>Password length:</value></data>
-  <data name="OptionsSecretsHeader" xml:space="preserve"><value>GitHub Actions secret names:</value></data>
   <data name="OptionsSecretKeystore" xml:space="preserve"><value>Keystore (Base64):</value></data>
   <data name="OptionsSecretStorePassword" xml:space="preserve"><value>Keystore password:</value></data>
   <data name="OptionsSecretKeyAlias" xml:space="preserve"><value>Key alias:</value></data>
@@ -82,14 +81,12 @@
   <data name="ButtonOk" xml:space="preserve"><value>OK</value></data>
   <data name="OptionsNotSaved" xml:space="preserve"><value>The DroidSign settings were not saved: {0}</value></data>
   <data name="ButtonCreateGroup" xml:space="preserve"><value>Create group</value></data>
-  <data name="GroupCreated" xml:space="preserve"><value>Group '{0}' was created at the top level of the database. Save the database to keep it.</value></data>
-  <data name="OptionsDefaultsHeader" xml:space="preserve"><value>Defaults for new signing keys (pre-filled in the New signing key window):</value></data>
   <data name="OptionsDefaultCommonNameHint" xml:space="preserve"><value>Leave the owner name empty to use each app's display name.</value></data>
   <data name="OptionsGitHubOwner" xml:space="preserve"><value>GitHub owner (user or organization):</value></data>
-  <data name="OptionsSaveAfterKeyChange" xml:space="preserve"><value>Save the database automatically after a key is created or added</value></data>
+  <data name="OptionsSaveAfterKeyChange" xml:space="preserve"><value>Save the database after a key is created or added</value></data>
   <data name="ErrorOpenBrowser" xml:space="preserve"><value>The browser could not be opened: {0}</value></data>
   <data name="LabelGitHubEnvironment" xml:space="preserve"><value>GitHub environment:</value></data>
-  <data name="GitHubEnvironmentHint" xml:space="preserve"><value>Secrets are exported into this environment of each repository, so only jobs that use the environment can read them. Leave empty to export repository secrets (readable by every workflow). Apps can choose their own target in the export wizard.</value></data>
+  <data name="GitHubEnvironmentHint" xml:space="preserve"><value>Only jobs that use this environment can read the secrets. Empty: repository secrets, readable by every workflow. Apps can override it in the export wizard.</value></data>
   <data name="RadioUseDefault" xml:space="preserve"><value>Use the default from the settings ({0})</value></data>
   <data name="RadioRepositoryLevel" xml:space="preserve"><value>Repository secrets (readable by every workflow)</value></data>
   <data name="RadioEnvironment" xml:space="preserve"><value>Environment:</value></data>
@@ -164,4 +161,17 @@
   <data name="ButtonFinish" xml:space="preserve"><value>Finish</value></data>
   <data name="CheckExportNow" xml:space="preserve"><value>Export the secrets to GitHub now (opens the export wizard)</value></data>
   <data name="NewKeyDoneNoToken" xml:space="preserve"><value>To export later, select the KeePass entry with your GitHub token in Tools &gt; Options &gt; DroidSign and use "Export to GitHub" on the key entry's DroidSign tab.</value></data>
+  <data name="OptionsTabGeneral" xml:space="preserve"><value>General</value></data>
+  <data name="OptionsTabNewKeys" xml:space="preserve"><value>New keys</value></data>
+  <data name="OptionsTabSecrets" xml:space="preserve"><value>Secret names</value></data>
+  <data name="OptionsSectionDatabase" xml:space="preserve"><value>Database</value></data>
+  <data name="OptionsSectionGitHub" xml:space="preserve"><value>GitHub</value></data>
+  <data name="OptionsGitHubOwnerHint" xml:space="preserve"><value>Pre-fills the repository and package ID of new keys.</value></data>
+  <data name="OptionsNewKeysInfo" xml:space="preserve"><value>Pre-filled in the New signing key window; each key can still be changed there.</value></data>
+  <data name="OptionsSecretsInfo" xml:space="preserve"><value>Names of the GitHub Actions secrets the export writes. Your signing workflow must read the same names.</value></data>
+  <data name="CreateGroupTitle" xml:space="preserve"><value>Create group</value></data>
+  <data name="CreateGroupInfo" xml:space="preserve"><value>A new first-level group of the active database; new signing keys are stored in it.</value></data>
+  <data name="LabelGroupName" xml:space="preserve"><value>Group name:</value></data>
+  <data name="ErrorGroupName" xml:space="preserve"><value>The group name must not be empty or contain '/'.</value></data>
+  <data name="ErrorGroupExists" xml:space="preserve"><value>The group '{0}' already exists.</value></data>
 </root>

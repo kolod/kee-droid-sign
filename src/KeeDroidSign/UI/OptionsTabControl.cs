@@ -17,15 +17,8 @@ namespace KeeDroidSign.UI
         private readonly PwDatabase _database;
         private readonly Action<PwGroup> _groupCreated;
 
-        private readonly ComboBox _rootGroup = new ComboBox
-        {
-            DropDownStyle = ComboBoxStyle.DropDown,
-            AutoCompleteMode = AutoCompleteMode.SuggestAppend,
-            AutoCompleteSource = AutoCompleteSource.ListItems,
-            Width = 260,
-        };
+        private readonly ComboBox _rootGroup = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 220 };
         private readonly Button _createGroup = FormLayout.CreateButton(Strings.ButtonCreateGroup);
-        private readonly Label _groupStatus = new Label { AutoSize = true, MaximumSize = new Size(520, 0) };
         private readonly Label _tokenEntry = new Label { AutoSize = true, MaximumSize = new Size(360, 0), Margin = new Padding(3, 6, 3, 3) };
         private readonly ComboBox _keySize = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList };
         private readonly NumericUpDown _validity = new NumericUpDown { Minimum = 25, Maximum = 100 };
@@ -55,10 +48,8 @@ namespace KeeDroidSign.UI
             _settings = settings;
             _database = activeDatabase;
             _groupCreated = groupCreated;
-            AutoScroll = true;
-
             _rootGroup.Items.AddRange(RootGroups.ListNames(activeDatabase).Cast<object>().ToArray());
-            _rootGroup.TextChanged += (s, e) => UpdateCreateGroup();
+            _createGroup.Enabled = activeDatabase != null;
             _createGroup.Click += OnCreateGroup;
             var groupRow = new FlowLayoutPanel { AutoSize = true, WrapContents = false, Margin = Padding.Empty };
             groupRow.Controls.AddRange(new Control[] { _rootGroup, _createGroup });
@@ -71,38 +62,62 @@ namespace KeeDroidSign.UI
             var tokenRow = new FlowLayoutPanel { AutoSize = true, WrapContents = false, Margin = Padding.Empty };
             tokenRow.Controls.AddRange(new Control[] { _tokenEntry, select, clear });
 
-            var grid = FormLayout.CreateGrid();
-            grid.Dock = DockStyle.Top;
-            FormLayout.AddRow(grid, Strings.OptionsRootGroup, groupRow).Anchor = AnchorStyles.Left;
-            FormLayout.AddRow(grid, string.Empty, _groupStatus);
-            FormLayout.AddRow(grid, Strings.OptionsTokenEntry, tokenRow).Anchor = AnchorStyles.Left;
-            FormLayout.AddNote(grid, activeDatabase != null ? Strings.OptionsTokenInfo : Strings.OptionsNoDatabase);
-            FormLayout.AddRow(grid, Strings.LabelKeySize, _keySize).Anchor = AnchorStyles.Left;
-            FormLayout.AddRow(grid, Strings.LabelValidity, _validity).Anchor = AnchorStyles.Left;
-            FormLayout.AddRow(grid, Strings.OptionsPasswordLength, _passwordLength).Anchor = AnchorStyles.Left;
+            // Inner tabs, so each fits the fixed-size Options dialog without scrolling.
+            TableLayoutPanel general = FormLayout.CreateGrid();
+            FormLayout.AddSection(general, Strings.OptionsSectionDatabase);
+            FormLayout.AddRow(general, Strings.OptionsRootGroup, groupRow).Anchor = AnchorStyles.Left;
+
             _saveAfterKeyChange.Text = Strings.OptionsSaveAfterKeyChange;
-            FormLayout.AddRow(grid, string.Empty, _saveAfterKeyChange).Anchor = AnchorStyles.Left;
-            FormLayout.AddNote(grid, Strings.OptionsDefaultsHeader);
-            FormLayout.AddRow(grid, Strings.LabelCommonName, _defaultCommonName).Anchor = AnchorStyles.Left;
-            FormLayout.AddNote(grid, Strings.OptionsDefaultCommonNameHint);
-            FormLayout.AddRow(grid, Strings.LabelOrgUnit, _defaultOrgUnit).Anchor = AnchorStyles.Left;
-            FormLayout.AddRow(grid, Strings.LabelOrganization, _defaultOrganization).Anchor = AnchorStyles.Left;
-            FormLayout.AddRow(grid, Strings.LabelLocality, _defaultLocality).Anchor = AnchorStyles.Left;
-            FormLayout.AddRow(grid, Strings.LabelState, _defaultState).Anchor = AnchorStyles.Left;
-            FormLayout.AddRow(grid, Strings.LabelCountry, _defaultCountry).Anchor = AnchorStyles.Left;
-            FormLayout.AddRow(grid, Strings.OptionsGitHubOwner, _defaultGitHubOwner).Anchor = AnchorStyles.Left;
-            FormLayout.AddNote(grid, Strings.OptionsSecretsHeader);
-            FormLayout.AddRow(grid, Strings.OptionsSecretKeystore, _secretKeystore).Anchor = AnchorStyles.Left;
-            FormLayout.AddRow(grid, Strings.OptionsSecretStorePassword, _secretStorePassword).Anchor = AnchorStyles.Left;
-            FormLayout.AddRow(grid, Strings.OptionsSecretKeyAlias, _secretKeyAlias).Anchor = AnchorStyles.Left;
-            FormLayout.AddRow(grid, Strings.OptionsSecretKeyPassword, _secretKeyPassword).Anchor = AnchorStyles.Left;
-            FormLayout.AddRow(grid, Strings.LabelGitHubEnvironment, _environment).Anchor = AnchorStyles.Left;
-            FormLayout.AddNote(grid, Strings.GitHubEnvironmentHint);
-            FormLayout.AddRow(grid, string.Empty, _error);
-            Controls.Add(grid);
+            FormLayout.AddRow(general, string.Empty, _saveAfterKeyChange).Anchor = AnchorStyles.Left;
+            FormLayout.AddSection(general, Strings.OptionsSectionGitHub);
+            FormLayout.AddRow(general, Strings.OptionsTokenEntry, tokenRow).Anchor = AnchorStyles.Left;
+            FormLayout.AddNote(general, activeDatabase != null ? Strings.OptionsTokenInfo : Strings.OptionsNoDatabase);
+            FormLayout.AddRow(general, Strings.LabelGitHubEnvironment, _environment).Anchor = AnchorStyles.Left;
+            FormLayout.AddNote(general, Strings.GitHubEnvironmentHint);
+            FormLayout.AddRow(general, Strings.OptionsGitHubOwner, _defaultGitHubOwner).Anchor = AnchorStyles.Left;
+            FormLayout.AddNote(general, Strings.OptionsGitHubOwnerHint);
+
+            TableLayoutPanel newKeys = FormLayout.CreateGrid();
+            FormLayout.AddNote(newKeys, Strings.OptionsNewKeysInfo);
+            FormLayout.AddSection(newKeys, Strings.SectionKey);
+            FormLayout.AddRow(newKeys, Strings.LabelKeySize, _keySize).Anchor = AnchorStyles.Left;
+            FormLayout.AddRow(newKeys, Strings.LabelValidity, _validity).Anchor = AnchorStyles.Left;
+            FormLayout.AddRow(newKeys, Strings.OptionsPasswordLength, _passwordLength).Anchor = AnchorStyles.Left;
+
+            TableLayoutPanel owner = FormLayout.CreateGrid();
+            FormLayout.AddNote(owner, Strings.OptionsNewKeysInfo);
+            FormLayout.AddSection(owner, Strings.SectionOwner);
+            FormLayout.AddRow(owner, Strings.LabelCommonName, _defaultCommonName).Anchor = AnchorStyles.Left;
+            FormLayout.AddNote(owner, Strings.OptionsDefaultCommonNameHint);
+            FormLayout.AddRow(owner, Strings.LabelOrgUnit, _defaultOrgUnit).Anchor = AnchorStyles.Left;
+            FormLayout.AddRow(owner, Strings.LabelOrganization, _defaultOrganization).Anchor = AnchorStyles.Left;
+            FormLayout.AddRow(owner, Strings.LabelLocality, _defaultLocality).Anchor = AnchorStyles.Left;
+            FormLayout.AddRow(owner, Strings.LabelState, _defaultState).Anchor = AnchorStyles.Left;
+            FormLayout.AddRow(owner, Strings.LabelCountry, _defaultCountry).Anchor = AnchorStyles.Left;
+
+            TableLayoutPanel secrets = FormLayout.CreateGrid();
+            FormLayout.AddNote(secrets, Strings.OptionsSecretsInfo);
+            FormLayout.AddRow(secrets, Strings.OptionsSecretKeystore, _secretKeystore).Anchor = AnchorStyles.Left;
+            FormLayout.AddRow(secrets, Strings.OptionsSecretStorePassword, _secretStorePassword).Anchor = AnchorStyles.Left;
+            FormLayout.AddRow(secrets, Strings.OptionsSecretKeyAlias, _secretKeyAlias).Anchor = AnchorStyles.Left;
+            FormLayout.AddRow(secrets, Strings.OptionsSecretKeyPassword, _secretKeyPassword).Anchor = AnchorStyles.Left;
+
+            var tabs = new TabControl { Dock = DockStyle.Fill };
+            tabs.TabPages.Add(InnerPage(Strings.OptionsTabGeneral, general));
+            tabs.TabPages.Add(InnerPage(Strings.OptionsTabNewKeys, newKeys));
+            tabs.TabPages.Add(InnerPage(Strings.SectionOwner, owner));
+            tabs.TabPages.Add(InnerPage(Strings.OptionsTabSecrets, secrets));
+
+            // Validation errors stay visible below the inner tabs, whichever tab is open.
+            _error.Dock = DockStyle.Bottom;
+            _error.Padding = new Padding(4, 6, 4, 2);
+            Controls.Add(tabs);
+            Controls.Add(_error);
 
             _keySize.Items.AddRange(new object[] { 2048, 3072, 4096 });
-            _rootGroup.Text = settings.RootGroup;
+            // The configured group may not exist yet (it is created with the first key): keep it selectable.
+            if (!_rootGroup.Items.Contains(settings.RootGroup)) _rootGroup.Items.Insert(0, settings.RootGroup);
+            _rootGroup.SelectedItem = settings.RootGroup;
             _tokenUuid = settings.TokenEntryUuid;
             _keySize.SelectedItem = settings.KeySize;
             if (_keySize.SelectedIndex < 0) _keySize.SelectedItem = 4096;
@@ -122,40 +137,44 @@ namespace KeeDroidSign.UI
             _defaultGitHubOwner.Text = settings.DefaultGitHubOwner;
             _environment.Text = settings.DefaultEnvironment;
             ShowToken();
-            UpdateCreateGroup();
         }
 
-        private void UpdateCreateGroup()
+        private static TabPage InnerPage(string text, TableLayoutPanel grid)
         {
-            string name = _rootGroup.Text.Trim();
-            _createGroup.Enabled = _database != null && RootGroups.IsValidName(name) && !RootGroups.Exists(_database, name);
+            grid.Dock = DockStyle.Top;
+            var page = new TabPage(text) { UseVisualStyleBackColor = true, AutoScroll = true };
+            page.Controls.Add(grid);
+            return page;
         }
 
+        /// <summary>Asks for a name, creates the first-level group and selects it.</summary>
         private void OnCreateGroup(object sender, EventArgs e)
         {
-            string name = _rootGroup.Text.Trim();
+            string name;
+            using (var dialog = new GroupNameForm(_database))
+            {
+                if (dialog.ShowDialog(FindForm()) != DialogResult.OK) return;
+                name = dialog.GroupName;
+            }
             try
             {
                 PwGroup group = RootGroups.Create(_database, name);
-                _rootGroup.Items.Add(group.Name);
-                _rootGroup.Text = group.Name;
-                _groupStatus.ForeColor = SystemColors.ControlText;
-                _groupStatus.Text = string.Format(Strings.GroupCreated, group.Name);
+                if (!_rootGroup.Items.Contains(group.Name)) _rootGroup.Items.Add(group.Name);
+                _rootGroup.SelectedItem = group.Name;
+                _error.Text = string.Empty;
                 if (_groupCreated != null) _groupCreated(group);
             }
             catch (Exception ex)
             {
-                _groupStatus.ForeColor = Color.Firebrick;
-                _groupStatus.Text = ErrorText.For(ex);
+                _error.Text = ErrorText.For(ex);
             }
-            UpdateCreateGroup();
         }
 
         /// <summary>Copies the inputs into a validated settings object, or returns an error message.</summary>
         public PluginSettings TryBuild(out string error)
         {
             PluginSettings result = _settings.Clone();
-            result.RootGroup = _rootGroup.Text.Trim();
+            result.RootGroup = _rootGroup.SelectedItem as string ?? _settings.RootGroup;
             result.TokenEntryUuid = _tokenUuid ?? string.Empty;
             result.KeySize = (int)_keySize.SelectedItem;
             result.ValidityYears = (int)_validity.Value;

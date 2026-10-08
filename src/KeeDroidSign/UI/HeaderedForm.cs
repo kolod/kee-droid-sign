@@ -1,3 +1,4 @@
+using System;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -37,7 +38,7 @@ namespace KeeDroidSign.UI
 
             _textWidth = Px(LogicalTextWidth);
             ClientSize = new Size(Px(logicalWidth), Px(logicalHeight));
-            MinimumSize = new Size(Px(480), Px(320));
+            MinimumSize = new Size(Px(Math.Min(480, logicalWidth)), Px(Math.Min(320, logicalHeight)));
             _title.Font = new Font(Font.FontFamily, Font.Size + 2, FontStyle.Bold);
             _subtitle.MaximumSize = new Size(_textWidth, 0);
             _content.Padding = new Padding(Px(18), Px(14), Px(18), Px(14));
