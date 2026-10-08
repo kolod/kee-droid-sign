@@ -38,11 +38,6 @@ namespace KeeDroidSign.Properties
             get { return ResourceManager.GetString("AppExistsAskAddKey", Culture); }
         }
 
-        internal static string AskOverwrite
-        {
-            get { return ResourceManager.GetString("AskOverwrite", Culture); }
-        }
-
         internal static string ButtonCancel
         {
             get { return ResourceManager.GetString("ButtonCancel", Culture); }
@@ -91,6 +86,21 @@ namespace KeeDroidSign.Properties
         internal static string ColumnTitle
         {
             get { return ResourceManager.GetString("ColumnTitle", Culture); }
+        }
+
+        internal static string ConfirmExport
+        {
+            get { return ResourceManager.GetString("ConfirmExport", Culture); }
+        }
+
+        internal static string ConfirmExportCreate
+        {
+            get { return ResourceManager.GetString("ConfirmExportCreate", Culture); }
+        }
+
+        internal static string ConfirmExportOverwrite
+        {
+            get { return ResourceManager.GetString("ConfirmExportOverwrite", Culture); }
         }
 
         internal static string ErrorNoDatabase
