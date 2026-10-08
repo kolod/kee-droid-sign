@@ -1,0 +1,12 @@
+.gradle/
+.kotlin/
+build/
+local.properties
+.idea/
+*.iml
+captures/
+
+# Signing material is written by CI from repository secrets and must never be committed.
+keystore.properties
+*.jks
+*.keystore

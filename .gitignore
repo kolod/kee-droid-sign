@@ -23,3 +23,7 @@ Thumbs.db
 # Local signing material (never commit keystores)
 *.jks
 *.keystore
+
+# Android fixture (defense in depth next to android/.gitignore)
+android/**/keystore.properties
+android/**/local.properties
