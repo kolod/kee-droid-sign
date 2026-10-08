@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>12</LangVersion>
+    <Nullable>disable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Deterministic>true</Deterministic>
+    <Company>KeeDroidSign</Company>
+    <Product>KeeDroidSign</Product>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+</Project>
