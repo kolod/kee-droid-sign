@@ -20,7 +20,7 @@ namespace KeeDroidSign.UI
 {
     /// <summary>
     /// "DroidSign" tab of the entry dialog for key entries (User Story 2): certificate details,
-    /// fingerprints with copy buttons, and export of the key's secrets to GitHub.
+    /// fingerprints with copy buttons, and the export wizard for the key's secrets.
     /// </summary>
     internal sealed class EntryTabControl : UserControl
     {
@@ -28,6 +28,7 @@ namespace KeeDroidSign.UI
         private readonly PwDatabase _database;
         private readonly Func<PluginSettings> _settings;
         private readonly ExportService _export;
+        private readonly Action<PwDatabase> _databaseChanged;
 
         private readonly Label _number = Value();
         private readonly Label _owner = Value();
@@ -45,20 +46,22 @@ namespace KeeDroidSign.UI
         private readonly Label _warning = new Label { AutoSize = true, MaximumSize = new Size(520, 0), ForeColor = Color.DarkOrange };
         private readonly Button _exportButton = FormLayout.CreateButton(Strings.ButtonExport);
         private readonly Label _exportStatus = new Label { AutoSize = true, MaximumSize = new Size(520, 0) };
-        private readonly TextBox _results = new TextBox
-        {
-            Multiline = true, ReadOnly = true, ScrollBars = ScrollBars.Vertical, Height = 90, Visible = false,
-        };
 
         private KeyContext _key;
-        private CancellationTokenSource _running;
 
-        public EntryTabControl(PwEntry entry, PwDatabase database, Func<PluginSettings> settings, ExportService export)
+        /// <param name="entry">The key entry being edited.</param>
+        /// <param name="database">Database containing the entry.</param>
+        /// <param name="settings">Reads the current settings at the moment of use.</param>
+        /// <param name="export">Export operations.</param>
+        /// <param name="databaseChanged">Called after the wizard changed the database (the app's export target).</param>
+        public EntryTabControl(PwEntry entry, PwDatabase database, Func<PluginSettings> settings, ExportService export,
+            Action<PwDatabase> databaseChanged)
         {
             _entry = entry;
             _database = database;
             _settings = settings;
             _export = export;
+            _databaseChanged = databaseChanged;
 
             AutoScroll = true;
             var grid = FormLayout.CreateGrid();
@@ -73,7 +76,6 @@ namespace KeeDroidSign.UI
             FormLayout.AddNote(grid, Strings.FingerprintHint);
             FormLayout.AddRow(grid, Strings.LabelRepositoryShort, WithButton(_repository, _exportButton));
             FormLayout.AddRow(grid, string.Empty, _exportStatus);
-            FormLayout.AddRow(grid, string.Empty, _results);
             FormLayout.AddRow(grid, string.Empty, _warning);
 
             _exportButton.Click += OnExport;
@@ -83,11 +85,6 @@ namespace KeeDroidSign.UI
             LoadKey();
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing && _running != null) _running.Cancel();
-            base.Dispose(disposing);
-        }
 
         private void LoadKey()
         {
@@ -137,50 +134,15 @@ namespace KeeDroidSign.UI
             }
         }
 
-        private async void OnExport(object sender, EventArgs e)
+        /// <summary>Opens the export wizard: target, inspection with proposed actions, results.</summary>
+        private void OnExport(object sender, EventArgs e)
         {
             GitHubCredential token = _export.ResolveToken(_database);
             if (token == null) { UpdateExportAvailability(); return; }
 
-            string repository = _key.App.Repository.ToString();
-            _exportButton.Enabled = false;
-            _results.Visible = false;
-            _exportStatus.ForeColor = SystemColors.ControlText;
-            _exportStatus.Text = string.Format(Strings.StatusExporting, repository);
-            _running = new CancellationTokenSource();
-            try
-            {
-                ExportPlan plan = await _export.PlanAsync(_key, token, _running.Token);
-                // Always confirm, naming the target repository (and any secrets to be overwritten).
-                if (!MessageService.AskYesNo(ExportConfirmation.Build(repository, plan)))
-                {
-                    _exportStatus.Text = Strings.ExportCancelledByUser;
-                    return;
-                }
-                bool overwrite = plan.ToOverwrite.Count > 0;
-
-                ExportResult result = await _export.ExportAsync(_key, token, overwrite, _running.Token);
-                _exportStatus.ForeColor = result.Succeeded ? Color.DarkGreen : Color.Firebrick;
-                _exportStatus.Text = string.Format(Strings.ExportDone, repository);
-                _results.Text = string.Join(Environment.NewLine, result.Outcomes.Select(o => o.ToString()));
-                _results.Visible = true;
-            }
-            catch (OperationCanceledException)
-            {
-                _exportStatus.Text = Strings.StatusCancelled;
-            }
-            catch (Exception ex)
-            {
-                // Never let an async void handler take KeePass down; ErrorText never shows secrets.
-                _exportStatus.ForeColor = Color.Firebrick;
-                _exportStatus.Text = ErrorText.For(ex);
-            }
-            finally
-            {
-                if (_running != null) _running.Dispose();
-                _running = null;
-                if (!IsDisposed) _exportButton.Enabled = true;
-            }
+            using (var wizard = new ExportWizardForm(_key, _database, _settings, _export, token, _databaseChanged))
+                wizard.ShowDialog(FindForm());
+            LoadKey();
         }
 
         /// <summary>Shows the repository as a link to its GitHub page, or as plain text if it is not one.</summary>

@@ -125,6 +125,11 @@ namespace KeeDroidSign.Storage
             RepositoryTarget repository;
             RepositoryTarget.TryParse(url, out repository);
 
+            if (keystoreEntry != null &&
+                ExportTargetOverride.Parse(keystoreEntry.Strings.ReadSafe(EntryFields.ExportTarget)).IsInvalid)
+                warnings.Add(string.Format(CultureInfo.InvariantCulture,
+                    "The field '{0}' has an unknown value; the default export target is used.", EntryFields.ExportTarget));
+
             return new AppKeystore(group, keystoreEntry, keys.OrderBy(k => k.Number).ToList(), repository, warnings);
         }
     }

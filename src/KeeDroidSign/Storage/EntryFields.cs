@@ -12,6 +12,15 @@ namespace KeeDroidSign.Storage
         public const string RoleKeystore = "keystore";
         public const string RoleKey = "key";
 
+        /// <summary>
+        /// Optional per-app export target on the keystore entry: absent = use the default from the
+        /// settings, <see cref="ExportTargetRepository"/>, or <see cref="ExportTargetEnvironmentPrefix"/> + name.
+        /// </summary>
+        public const string ExportTarget = "DroidSign.ExportTarget";
+
+        public const string ExportTargetRepository = "repository";
+        public const string ExportTargetEnvironmentPrefix = "environment:";
+
         public const string KeystoreExtension = ".jks";
 
         public static string KeystoreFileName(string packageId)

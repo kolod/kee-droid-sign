@@ -17,7 +17,7 @@ using Org.BouncyCastle.X509;
 namespace KeeDroidSign.UI
 {
     /// <summary>Tools -> DroidSign -> Add key to existing app (User Story 3).</summary>
-    internal sealed class AddKeyForm : Form
+    internal sealed class AddKeyForm : HeaderedForm
     {
         private readonly KeyService _service;
         private readonly IReadOnlyList<AppKeystore> _apps;
@@ -30,40 +30,37 @@ namespace KeeDroidSign.UI
         private readonly TextBox _locality = new TextBox { Width = 320 };
         private readonly TextBox _state = new TextBox { Width = 320 };
         private readonly TextBox _country = new TextBox { MaxLength = 2, CharacterCasing = CharacterCasing.Upper, Width = 40 };
-        private readonly Label _status = new Label { AutoSize = true, MaximumSize = new Size(520, 0) };
-        private readonly ProgressBar _progress = new ProgressBar { Style = ProgressBarStyle.Marquee, Visible = false, Height = 12 };
+        private readonly Label _status = new Label { AutoSize = true };
         private readonly Button _create = FormLayout.CreateButton(Strings.ButtonCreate);
         private readonly Button _cancel = FormLayout.CreateButton(Strings.ButtonCancel);
 
         private CancellationTokenSource _running;
 
         public AddKeyForm(KeyService service, IReadOnlyList<AppKeystore> apps, string preselectPackageId)
+            : base(Strings.AddKeyTitle, 660, 480)
         {
             _service = service;
             _apps = apps;
+            SetHeader(Strings.AddKeyTitle, Strings.AddKeyInfo);
 
-            Text = Strings.AddKeyTitle;
-            FormBorderStyle = FormBorderStyle.FixedDialog;
-            MaximizeBox = false;
-            MinimizeBox = false;
-            ShowInTaskbar = false;
-            StartPosition = FormStartPosition.CenterParent;
-            AutoSize = true;
-            AutoSizeMode = AutoSizeMode.GrowAndShrink;
-            AutoScaleMode = AutoScaleMode.Dpi;
-            Font = SystemFonts.MessageBoxFont;
+            TableLayoutPanel grid = Grid();
+            _app.Width = Px(360);
+            foreach (var box in new Control[] { _commonName, _orgUnit, _organization, _locality, _state })
+                box.Width = Px(360);
+            _country.Width = Px(48);
+            _status.MaximumSize = new Size(TextWidth, 0);
 
-            var grid = FormLayout.CreateGrid();
+            AddSection(grid, Strings.SectionApp);
             FormLayout.AddRow(grid, Strings.LabelApp, _app);
             FormLayout.AddRow(grid, Strings.LabelNewKeyNumber, _number);
+            AddSection(grid, Strings.SectionOwner);
+            AddHint(grid, Strings.AddKeyOwnerHint);
             FormLayout.AddRow(grid, Strings.LabelCommonName, _commonName);
             FormLayout.AddRow(grid, Strings.LabelOrgUnit, _orgUnit);
             FormLayout.AddRow(grid, Strings.LabelOrganization, _organization);
             FormLayout.AddRow(grid, Strings.LabelLocality, _locality);
             FormLayout.AddRow(grid, Strings.LabelState, _state);
             FormLayout.AddRow(grid, Strings.LabelCountry, _country).Anchor = AnchorStyles.Left;
-            FormLayout.AddNote(grid, Strings.AddKeyInfo);
-            FormLayout.AddRow(grid, string.Empty, _progress);
             FormLayout.AddRow(grid, string.Empty, _status);
 
             foreach (AppKeystore app in apps)
@@ -75,8 +72,8 @@ namespace KeeDroidSign.UI
             _create.Click += OnCreate;
             _cancel.Click += (s, e) => { if (_running != null) _running.Cancel(); else Close(); };
 
-            Controls.Add(grid);
-            Controls.Add(FormLayout.CreateButtonBar(_cancel, _create));
+            Content.Controls.Add(grid);
+            LayOut(_cancel, _create);
             AcceptButton = _create;
         }
 
@@ -210,9 +207,9 @@ namespace KeeDroidSign.UI
         {
             foreach (Control c in new Control[] { _app, _commonName, _orgUnit, _organization, _locality, _state, _country, _create })
                 c.Enabled = !running;
-            _progress.Visible = running;
+            ShowBusy(running, Strings.StatusGenerating);
             _status.ForeColor = SystemColors.ControlText;
-            _status.Text = running ? Strings.StatusGenerating : string.Empty;
+            _status.Text = string.Empty;
         }
 
         private void ShowError(string message)

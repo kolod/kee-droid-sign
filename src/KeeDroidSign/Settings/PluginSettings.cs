@@ -41,7 +41,11 @@ namespace KeeDroidSign.Settings
             DefaultState = string.Empty;
             DefaultCountry = string.Empty;
             DefaultGitHubOwner = string.Empty;
+            DefaultEnvironment = string.Empty;
         }
+
+        /// <summary>Default environment of a new installation; upgrades from 1.0.x keep repository level.</summary>
+        public const string NewInstallEnvironment = "release";
 
         public string RootGroup { get; set; }
 
@@ -72,6 +76,12 @@ namespace KeeDroidSign.Settings
 
         /// <summary>GitHub user or organization pre-filled as the repository owner, or empty.</summary>
         public string DefaultGitHubOwner { get; set; }
+
+        /// <summary>
+        /// GitHub environment the secrets are exported into unless an app overrides it; empty means
+        /// repository-level secrets (readable by every workflow of the repository).
+        /// </summary>
+        public string DefaultEnvironment { get; set; }
 
         /// <summary>
         /// Initial text of the repository field: "https://github.com/", plus "owner/" when a default
@@ -138,6 +148,13 @@ namespace KeeDroidSign.Settings
             s.DefaultState = store.Get("Default.State") ?? s.DefaultState;
             s.DefaultCountry = store.Get("Default.Country") ?? s.DefaultCountry;
             s.DefaultGitHubOwner = store.Get("Default.GitHubOwner") ?? s.DefaultGitHubOwner;
+            // Not saved yet: a new installation gets "release"; settings saved by 1.0.x (which always
+            // include RootGroup) keep exporting at repository level until the user changes it.
+            string environment = store.Get("GitHubEnvironment");
+            if (environment != null)
+                s.DefaultEnvironment = environment;
+            else if (store.Get("RootGroup") == null)
+                s.DefaultEnvironment = NewInstallEnvironment;
             return s;
         }
 
@@ -162,6 +179,7 @@ namespace KeeDroidSign.Settings
             store.Set("Default.State", DefaultState ?? string.Empty);
             store.Set("Default.Country", DefaultCountry ?? string.Empty);
             store.Set("Default.GitHubOwner", DefaultGitHubOwner ?? string.Empty);
+            store.Set("GitHubEnvironment", DefaultEnvironment ?? string.Empty);
         }
 
         /// <summary>Throws <see cref="ArgumentException"/> naming the invalid field.</summary>
@@ -189,6 +207,17 @@ namespace KeeDroidSign.Settings
 
             if (!string.IsNullOrEmpty(DefaultGitHubOwner) && !GitHubOwnerPattern.IsMatch(DefaultGitHubOwner))
                 throw new ArgumentException("The default GitHub owner must be a user or organization name (letters, digits, '-').");
+            if (!string.IsNullOrEmpty(DefaultEnvironment) && !EnvironmentNames.IsValid(DefaultEnvironment))
+            {
+                try
+                {
+                    EnvironmentNames.Validate(DefaultEnvironment);
+                }
+                catch (ArgumentException ex)
+                {
+                    throw new ArgumentException("Invalid GitHub environment: " + ex.Message, ex);
+                }
+            }
 
             // Owner fields follow the certificate rules; the CN placeholder only satisfies "CN required".
             DistinguishedName subject = DefaultSubject("placeholder");
