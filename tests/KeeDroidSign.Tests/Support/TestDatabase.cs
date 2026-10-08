@@ -61,7 +61,6 @@ namespace KeeDroidSign.Tests.Support
             key.Strings.Set(PwDefs.TitleField, new ProtectedString(false, title ?? number.ToString()));
             key.Strings.Set(PwDefs.PasswordField, new ProtectedString(true, KeyPassword));
             key.Strings.Set(EntryFields.Role, new ProtectedString(false, EntryFields.RoleKey));
-            key.Strings.Set(EntryFields.KeyNumber, new ProtectedString(false, number.ToString()));
             app.AddEntry(key, true);
             return key;
         }

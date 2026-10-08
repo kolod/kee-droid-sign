@@ -65,10 +65,10 @@ machine.
   - Groups: find/create `<root>` under `pd.RootGroup`, then `<package id>` (`PwGroup.FindCreateGroup`).
   - Entries: `PwEntry` with `PwDefs.TitleField`, `PasswordField` (`ProtectedString(true, …)`),
     `UrlField`; attachment `entry.Binaries.Set("<package id>.jks", new ProtectedBinary(true, bytes))`.
-  - Markers (spec FR-004): custom string fields `DroidSign.Role` = `keystore` | `key` and, on key
-    entries, `DroidSign.KeyNumber` = `n`. The alias used in the keystore is `DroidSign.KeyNumber`;
-    the title is initialised to the same number. A title that no longer matches shows a warning
-    on the tab, nothing breaks (spec clarification Q1 = alias equals the number).
+  - Marker (spec FR-004): custom string field `DroidSign.Role` = `keystore` | `key`. The key
+    entry's title is the key number and the alias in the keystore (spec clarification Q1). A
+    separate `DroidSign.KeyNumber` copy was written by plugin 1.0.0 and dropped afterwards at the
+    maintainer's request (key entries are not renamed); old entries keep it, and it is ignored.
   - Before replacing the keystore attachment: `entry.CreateBackup(pd)` (history, FR-008/US3-4).
   - After changes: `pd.Modified = true` and `host.MainWindow.UpdateUI(false, null, true, group,
     true, null, true)` (FR-009); the plugin never saves the file.

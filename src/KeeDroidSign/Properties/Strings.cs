@@ -98,6 +98,11 @@ namespace KeeDroidSign.Properties
             get { return ResourceManager.GetString("ErrorNoDatabase", Culture); }
         }
 
+        internal static string ErrorOpenBrowser
+        {
+            get { return ResourceManager.GetString("ErrorOpenBrowser", Culture); }
+        }
+
         internal static string ErrorReadKey
         {
             get { return ResourceManager.GetString("ErrorReadKey", Culture); }
@@ -416,11 +421,6 @@ namespace KeeDroidSign.Properties
         internal static string TabTitle
         {
             get { return ResourceManager.GetString("TabTitle", Culture); }
-        }
-
-        internal static string TitleMismatchWarning
-        {
-            get { return ResourceManager.GetString("TitleMismatchWarning", Culture); }
         }
     }
 }

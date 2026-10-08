@@ -47,7 +47,6 @@
   <data name="ButtonCopy" xml:space="preserve"><value>Copy</value></data>
   <data name="ButtonExport" xml:space="preserve"><value>Export to GitHub</value></data>
   <data name="FingerprintHint" xml:space="preserve"><value>Use the SHA-256 fingerprint in the Android Developer Console.</value></data>
-  <data name="TitleMismatchWarning" xml:space="preserve"><value>The entry title differs from the key number. The key number {0} is used as the alias.</value></data>
   <data name="ExportDisabledProblems" xml:space="preserve"><value>Export is unavailable: {0}</value></data>
   <data name="ExportDisabledToken" xml:space="preserve"><value>Select the KeePass entry holding your GitHub token in Tools &gt; Options &gt; DroidSign.</value></data>
   <data name="ProblemMissingKeystoreEntry" xml:space="preserve"><value>the app group has no keystore entry</value></data>
@@ -92,4 +91,5 @@
   <data name="OptionsDefaultCommonNameHint" xml:space="preserve"><value>Leave the owner name empty to use each app's display name.</value></data>
   <data name="OptionsGitHubOwner" xml:space="preserve"><value>GitHub owner (user or organization):</value></data>
   <data name="OptionsSaveAfterKeyChange" xml:space="preserve"><value>Save the database automatically after a key is created or added</value></data>
+  <data name="ErrorOpenBrowser" xml:space="preserve"><value>The browser could not be opened: {0}</value></data>
 </root>

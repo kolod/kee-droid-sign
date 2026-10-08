@@ -39,7 +39,7 @@ namespace KeeDroidSign.Storage
             PwEntry keyEntry = CreateKeyEntry(group, 1, keystore.KeyPassword);
 
             _database.Modified = true;
-            return new KeyEntryInfo(keyEntry, 1, false);
+            return new KeyEntryInfo(keyEntry, 1);
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace KeeDroidSign.Storage
             PwEntry keyEntry = CreateKeyEntry(app.Group, number, updated.KeyPassword);
 
             _database.Modified = true;
-            return new KeyEntryInfo(keyEntry, number, false);
+            return new KeyEntryInfo(keyEntry, number);
         }
 
         /// <summary>Throws <see cref="ArgumentException"/> naming the invalid field.</summary>
@@ -90,7 +90,6 @@ namespace KeeDroidSign.Storage
             SetText(entry, PwDefs.TitleField, text);
             SetSecret(entry, PwDefs.PasswordField, keyPassword);
             SetText(entry, EntryFields.Role, EntryFields.RoleKey);
-            SetText(entry, EntryFields.KeyNumber, text);
             group.AddEntry(entry, true);
             return entry;
         }

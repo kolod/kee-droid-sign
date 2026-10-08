@@ -66,7 +66,7 @@ release build, a new version-consistency test (research R6), script self-checks,
 - [X] T008 [P] [US2] Set `<Version>1.0.0</Version>` in `Directory.Build.props` and `AssemblyVersion`/`AssemblyFileVersion` `1.0.0.0` in `src/KeeDroidSign/Properties/AssemblyInfo.cs`
 - [X] T009 [P] [US2] Add test `PluginVersion_MatchesCoreVersion` to `tests/KeeDroidSign.Tests/UI/PluginSmokeTests.cs`: `typeof(KeeDroidSignExt).Assembly.GetName().Version` equals `typeof(KeeDroidSign.Core.Keystore.KeystoreGenerator).Assembly.GetName().Version`
 - [X] T010 [US2] Run `dotnet build`/`dotnet test` and `Build-Plgx.ps1 -Version 1.0.0` locally; all green
-- [ ] T011 [US2] After the PR is merged and the maintainer confirms: create signed annotated tag `git tag -s v1.0.0 -m "KeeDroidSign 1.0.0"` on the updated `main`, push it, watch the **Release** run, and verify with `gh release view v1.0.0 --json name,isLatest,isPrerelease,assets` (one asset `KeeDroidSign.plgx`)
+- [X] T011 [US2] After the PR is merged and the maintainer confirms: create signed annotated tag `git tag -s v1.0.0 -m "KeeDroidSign 1.0.0"` on the updated `main`, push it, watch the **Release** run, and verify with `gh release view v1.0.0 --json name,isLatest,isPrerelease,assets` (one asset `KeeDroidSign.plgx`)
 
 **Checkpoint**: 1.0.0 published
 

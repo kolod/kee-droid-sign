@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
@@ -34,7 +35,13 @@ namespace KeeDroidSign.UI
         private readonly TextBox _displayName = Fingerprint();
         private readonly TextBox _packageId = Fingerprint();
         private readonly TextBox _sha256 = Fingerprint();
-        private readonly Label _repository = Value();
+        private readonly LinkLabel _repository = new LinkLabel
+        {
+            AutoSize = true,
+            MaximumSize = new Size(360, 0),
+            Margin = new Padding(3, 6, 3, 3),
+            Anchor = AnchorStyles.Left,
+        };
         private readonly Label _warning = new Label { AutoSize = true, MaximumSize = new Size(520, 0), ForeColor = Color.DarkOrange };
         private readonly Button _exportButton = FormLayout.CreateButton(Strings.ButtonExport);
         private readonly Label _exportStatus = new Label { AutoSize = true, MaximumSize = new Size(520, 0) };
@@ -64,13 +71,13 @@ namespace KeeDroidSign.UI
             FormLayout.AddRow(grid, Strings.LabelPackageId, WithCopy(_packageId));
             FormLayout.AddRow(grid, Strings.LabelSha256, WithCopy(_sha256));
             FormLayout.AddNote(grid, Strings.FingerprintHint);
-            FormLayout.AddRow(grid, Strings.LabelRepositoryShort, _repository);
-            FormLayout.AddRow(grid, string.Empty, _exportButton).Anchor = AnchorStyles.Left;
+            FormLayout.AddRow(grid, Strings.LabelRepositoryShort, WithButton(_repository, _exportButton));
             FormLayout.AddRow(grid, string.Empty, _exportStatus);
             FormLayout.AddRow(grid, string.Empty, _results);
             FormLayout.AddRow(grid, string.Empty, _warning);
 
             _exportButton.Click += OnExport;
+            _repository.LinkClicked += OnRepositoryClicked;
             Controls.Add(grid);
 
             LoadKey();
@@ -89,11 +96,9 @@ namespace KeeDroidSign.UI
             _number.Text = _key.Alias ?? "-";
             _displayName.Text = _key.App.DisplayName;
             _packageId.Text = _key.App.PackageId;
-            _repository.Text = _key.App.Repository != null ? _key.App.Repository.ToString() : _key.App.RepositoryUrl;
+            ShowRepository();
 
             var warnings = new List<string>(_key.App.Warnings);
-            if (_key.Key != null && _key.Key.TitleMismatch)
-                warnings.Add(string.Format(Strings.TitleMismatchWarning, _key.Alias));
 
             try
             {
@@ -180,6 +185,44 @@ namespace KeeDroidSign.UI
                 _running = null;
                 if (!IsDisposed) _exportButton.Enabled = true;
             }
+        }
+
+        /// <summary>Shows the repository as a link to its GitHub page, or as plain text if it is not one.</summary>
+        private void ShowRepository()
+        {
+            string url = _key.App.RepositoryWebUrl;
+            _repository.Text = url ?? _key.App.RepositoryUrl;
+            _repository.Links.Clear();
+            if (url != null)
+                _repository.Links.Add(0, url.Length, url);
+        }
+
+        private void OnRepositoryClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            var url = e.Link.LinkData as string;
+            if (url == null) return;
+            try
+            {
+                // Shell execute opens the URL in the system's default browser.
+                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+                e.Link.Visited = true;
+            }
+            catch (Exception ex)
+            {
+                _exportStatus.ForeColor = Color.Firebrick;
+                _exportStatus.Text = string.Format(Strings.ErrorOpenBrowser, ex.Message);
+            }
+        }
+
+        /// <summary>A value on the left and a button on the right, in one row.</summary>
+        private static Control WithButton(Control value, Button button)
+        {
+            var row = new TableLayoutPanel { ColumnCount = 2, AutoSize = true, Dock = DockStyle.Fill, Margin = Padding.Empty };
+            row.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
+            row.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            row.Controls.Add(value, 0, 0);
+            row.Controls.Add(button, 1, 0);
+            return row;
         }
 
         private Control WithCopy(TextBox box)

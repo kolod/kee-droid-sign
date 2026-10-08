@@ -47,7 +47,7 @@ namespace KeeDroidSign.Tests.Storage
             PwEntry keyEntry = app.Entries.Single(DroidSignStore.IsKeyEntry);
             Assert.Same(keyEntry, key.Entry);
             Assert.Equal("1", keyEntry.Strings.ReadSafe(PwDefs.TitleField));
-            Assert.Equal("1", keyEntry.Strings.ReadSafe(EntryFields.KeyNumber));
+            Assert.Null(keyEntry.Strings.Get("DroidSign.KeyNumber")); // the title is the alias
             Assert.Equal(TestDatabase.KeyPassword, keyEntry.Strings.ReadSafe(PwDefs.PasswordField));
             Assert.True(keyEntry.Strings.Get(PwDefs.PasswordField).IsProtected);
 

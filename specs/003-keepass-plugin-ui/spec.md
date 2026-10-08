@@ -196,8 +196,9 @@ names.
   number starting at 1, Password = private key password. The key's alias inside the
   keystore equals the entry's number (`1`, `2`, …).
 - **FR-004**: All passwords MUST be stored as protected values; entries MUST carry a plugin marker
-  (custom field) so the plugin can recognise keystore and key entries reliably even if titles are
-  edited.
+  (custom field `DroidSign.Role`) so the plugin recognises keystore and key entries. The key
+  number is not duplicated in a field: it is read from the key entry's title, so key entries must
+  not be renamed.
 
 **Key generation (Tools menu window)**
 
