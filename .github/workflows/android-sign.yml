@@ -56,6 +56,14 @@ jobs:
       - name: Assemble debug APK
         run: ./gradlew :app:assembleDebug --stacktrace
 
+      # A green pull-request run must not be mistaken for a verified signing run (FR-008).
+      - name: Explain skipped signing
+        run: |
+          msg="Signing skipped: pull requests have no access to repository secrets. Only the debug APK was built; run the workflow manually on main to sign."
+          echo "::notice title=Signing skipped::$msg"
+          echo "### Signing skipped" >> "$GITHUB_STEP_SUMMARY"
+          echo "$msg" >> "$GITHUB_STEP_SUMMARY"
+
   sign:
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
