@@ -12,8 +12,9 @@ A [KeePass 2.x](https://keepass.info/) plugin for managing Android app signing k
 
 ## Installation
 
-1. Get `KeeDroidSign.plgx`: download the `KeeDroidSign-plgx` artifact of the **.NET build and
-   test** workflow, or build it (see [Build and test](#build-and-test)).
+1. Download `KeeDroidSign.plgx` from the
+   [latest release](https://github.com/kolod/kee-droid-sign/releases/latest)
+   (or build it yourself, see [Build and test](#build-and-test)).
 2. Close KeePass and copy `KeeDroidSign.plgx` into `<KeePass>/Plugins/`
    (or run `./build/Install-Plugin.ps1` from an elevated PowerShell).
 3. Start KeePass. It compiles the plugin on the first start (this takes a few seconds);
@@ -63,6 +64,8 @@ them; the key number in those fields is the alias inside the `.jks`.
 | `tests/KeeDroidSign.LiveTests/` | Opt-in end-to-end test against real GitHub (skipped without a token) |
 | `android/` | "Hello, World!" Kotlin app used only as a signing test fixture |
 | `.github/workflows/android-sign.yml` | Builds and signs the sample APK from the repository secrets |
+| `.github/workflows/dotnet.yml` | Builds, tests and packages the plugin (PLGX artifact) |
+| `.github/workflows/release.yml` | Publishes a GitHub Release with `KeeDroidSign.plgx` for a `vX.Y.Z` tag |
 | `keepass/` | KeePass source code as a git submodule (read-only reference) |
 | `specs/` | Feature specifications, plans and task lists |
 | `.specify/memory/constitution.md` | Project principles |
@@ -225,6 +228,25 @@ Build the sample app locally (Android SDK and JDK 21 required):
 cd android
 ./gradlew :app:assembleDebug
 ```
+
+## Releasing
+
+Releases are published by the **Release** workflow (`.github/workflows/release.yml`):
+
+1. Raise the version in `Directory.Build.props` and `src/KeeDroidSign/Properties/AssemblyInfo.cs`
+   (a test checks they match) and merge to `main`.
+2. Tag the merge commit and push the tag:
+
+   ```powershell
+   git tag -s v1.2.3 -m "KeeDroidSign 1.2.3"
+   git push origin v1.2.3
+   ```
+
+The workflow builds and tests that commit on Windows, stamps the tag version into the PLGX, and
+publishes release `1.2.3` with `KeeDroidSign.plgx` as its only asset and generated release notes.
+Tags with a suffix (`v1.3.0-beta.1`) become pre-releases. Tags on commits outside `main` are
+refused. An existing release is never recreated; to replace its PLGX, run the workflow manually
+with the tag and **replace_asset** checked.
 
 ## License
 

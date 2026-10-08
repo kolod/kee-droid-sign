@@ -29,6 +29,16 @@ namespace KeeDroidSign.Tests.UI
         }
 
         [Fact]
+        public void PluginVersion_MatchesCoreVersion()
+        {
+            // AssemblyInfo.cs (plugin, kept in source for the PLGX) and Directory.Build.props (core)
+            // must be raised together, so local builds and releases report the same version.
+            var plugin = typeof(KeeDroidSignExt).Assembly.GetName().Version;
+            var core = typeof(KeeDroidSign.Core.Keystore.KeystoreGenerator).Assembly.GetName().Version;
+            Assert.Equal(core, plugin);
+        }
+
+        [Fact]
         public void Initialize_WithoutHost_ReturnsFalse()
         {
             Assert.False(new KeeDroidSignExt().Initialize(null));

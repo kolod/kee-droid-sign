@@ -1,0 +1,158 @@
+name: Release
+
+# Publishes a GitHub Release with KeeDroidSign.plgx as its only asset when a version tag
+# (vX.Y.Z or vX.Y.Z-pre) is pushed on a commit in main.
+# Contract: specs/004-plgx-release/contracts/release-workflow.md
+run-name: Release ${{ inputs.tag || github.ref_name }}
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to release, e.g. v1.0.0"
+        required: true
+        type: string
+      replace_asset:
+        description: "Replace KeeDroidSign.plgx if the release already exists"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+      version: ${{ steps.tag.outputs.version }}
+      prerelease: ${{ steps.tag.outputs.prerelease }}
+    steps:
+      - name: Resolve tag
+        id: tag
+        shell: pwsh
+        env:
+          TAG_INPUT: ${{ inputs.tag }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          $tag = if ($env:TAG_INPUT) { $env:TAG_INPUT } else { $env:REF_NAME }
+          $m = [regex]::Match($tag, '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?$')
+          if (-not $m.Success) {
+            Write-Host "::error::'$tag' is not a version tag (expected vX.Y.Z or vX.Y.Z-pre)."
+            exit 1
+          }
+          $version = "$($m.Groups[1].Value).$($m.Groups[2].Value).$($m.Groups[3].Value)"
+          $prerelease = if ($m.Groups[4].Success) { 'true' } else { 'false' }
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "prerelease=$prerelease" >> $env:GITHUB_OUTPUT
+          Write-Host "Tag $tag -> version $version (pre-release: $prerelease)"
+
+      - uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ steps.tag.outputs.tag }}
+          fetch-depth: 0
+          submodules: true
+
+      - name: Check branch
+        shell: pwsh
+        run: |
+          git fetch --no-tags origin main
+          git merge-base --is-ancestor HEAD origin/main
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::The tagged commit is not on main; releases are published from main only."
+            exit 1
+          }
+
+      - name: Compare source version
+        shell: pwsh
+        env:
+          VERSION: ${{ steps.tag.outputs.version }}
+        run: |
+          [xml]$props = Get-Content Directory.Build.props
+          $source = $props.Project.PropertyGroup.Version
+          if ($source -ne $env:VERSION) {
+            Write-Host "::warning::Directory.Build.props has version $source, the tag says $env:VERSION; the tag version is used."
+          }
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Build KeePass reference
+        shell: pwsh
+        run: ./build/Build-KeePassReference.ps1
+
+      - name: Build
+        env:
+          VERSION: ${{ steps.tag.outputs.version }}
+        run: dotnet build KeeDroidSign.sln -c Release "-p:Version=$env:VERSION"
+
+      - name: Test
+        run: dotnet test KeeDroidSign.sln -c Release --no-build
+
+      # Verifies the C# 5 compiler, the "KeePass Plugin" product name and the stamped version.
+      - name: Build PLGX
+        shell: powershell
+        env:
+          VERSION: ${{ steps.tag.outputs.version }}
+        run: ./build/Build-Plgx.ps1 -Version $env:VERSION
+
+      - name: Upload PLGX
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-plgx
+          path: artifacts/plgx/KeeDroidSign.plgx
+          if-no-files-found: error
+          retention-days: 7
+
+  # Only this job can write releases; it runs no repository code.
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: ${{ needs.build.outputs.tag }}
+      VERSION: ${{ needs.build.outputs.version }}
+      PRERELEASE: ${{ needs.build.outputs.prerelease }}
+      REPLACE_ASSET: ${{ inputs.replace_asset || false }}
+    steps:
+      - name: Download PLGX
+        uses: actions/download-artifact@v8
+        with:
+          name: release-plgx
+
+      - name: Publish release
+        run: |
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            if [ "$REPLACE_ASSET" = "true" ]; then
+              gh release upload "$TAG" KeeDroidSign.plgx --clobber
+              echo "Replaced KeeDroidSign.plgx in release $TAG."
+            else
+              echo "::error::Release $TAG already exists. Re-run manually with replace_asset to replace its PLGX."
+              exit 1
+            fi
+          else
+            flags=()
+            if [ "$PRERELEASE" = "true" ]; then
+              flags=(--prerelease --latest=false)
+            fi
+            gh release create "$TAG" KeeDroidSign.plgx --verify-tag --title "$VERSION" --generate-notes "${flags[@]}"
+          fi
+          url=$(gh release view "$TAG" --json url --jq .url)
+          echo "### Release $VERSION" >> "$GITHUB_STEP_SUMMARY"
+          echo "$url" >> "$GITHUB_STEP_SUMMARY"
