@@ -108,6 +108,7 @@ namespace KeeDroidSign.Core.GitHub
     internal sealed class RepositoryDto
     {
         [DataMember(Name = "archived")] public bool Archived { get; set; }
+        [DataMember(Name = "default_branch")] public string DefaultBranch { get; set; }
     }
 
     [DataContract]

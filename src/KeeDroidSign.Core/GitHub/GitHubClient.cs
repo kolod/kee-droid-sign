@@ -14,7 +14,7 @@ namespace KeeDroidSign.Core.GitHub
     /// Minimal GitHub REST client (API version 2022-11-28) for token validation and Actions secrets.
     /// Always talks to https://api.github.com; never includes the token or response bodies in errors.
     /// </summary>
-    public sealed class GitHubClient : IDisposable
+    public sealed partial class GitHubClient : IDisposable
     {
         internal const string ApiVersion = "2022-11-28";
         private static readonly Uri BaseAddress = new Uri("https://api.github.com/");
@@ -96,17 +96,22 @@ namespace KeeDroidSign.Core.GitHub
         }
 
         /// <summary>Lists the names of all repository Actions secrets (FR-021).</summary>
-        public async Task<IReadOnlyCollection<string>> ListSecretNamesAsync(RepositoryTarget repo, CancellationToken ct)
+        public Task<IReadOnlyCollection<string>> ListSecretNamesAsync(RepositoryTarget repo, CancellationToken ct) =>
+            ListSecretNamesAsync(SecretScope.ForRepository(repo), ct);
+
+        /// <summary>Lists the names of all secrets of the repository or of one of its environments.</summary>
+        public async Task<IReadOnlyCollection<string>> ListSecretNamesAsync(SecretScope scope, CancellationToken ct)
         {
-            if (repo == null) throw new ArgumentNullException(nameof(repo));
+            if (scope == null) throw new ArgumentNullException(nameof(scope));
 
             var names = new List<string>();
             for (int page = 1; ; page++)
             {
-                string uri = RepoPath(repo) + "/actions/secrets?per_page=100&page=" + page;
+                string uri = scope.SecretsPath + "?per_page=100&page=" + page;
                 using (Response response = await SendAsync(HttpMethod.Get, uri, null, ct).ConfigureAwait(false))
                 {
-                    EnsureSuccess(response, "list the repository secrets");
+                    EnsureScopeAccess(response, scope);
+                    EnsureSuccess(response, scope.IsEnvironment ? "list the environment secrets" : "list the repository secrets");
                     SecretListDto dto = await response.ReadJsonAsync<SecretListDto>().ConfigureAwait(false);
                     if (dto == null)
                         throw new GitHubApiException("GitHub returned an unexpected response while listing secrets.");
@@ -120,13 +125,21 @@ namespace KeeDroidSign.Core.GitHub
         }
 
         /// <summary>Gets the repository public key used to encrypt secrets.</summary>
-        public async Task<RepositoryPublicKey> GetPublicKeyAsync(RepositoryTarget repo, CancellationToken ct)
-        {
-            if (repo == null) throw new ArgumentNullException(nameof(repo));
+        public Task<RepositoryPublicKey> GetPublicKeyAsync(RepositoryTarget repo, CancellationToken ct) =>
+            GetPublicKeyAsync(SecretScope.ForRepository(repo), ct);
 
-            using (Response response = await SendAsync(HttpMethod.Get, RepoPath(repo) + "/actions/secrets/public-key", null, ct).ConfigureAwait(false))
+        /// <summary>
+        /// Gets the public key used to encrypt secrets of the scope. For an environment, a missing
+        /// environment throws <see cref="EnvironmentNotFoundException"/>.
+        /// </summary>
+        public async Task<RepositoryPublicKey> GetPublicKeyAsync(SecretScope scope, CancellationToken ct)
+        {
+            if (scope == null) throw new ArgumentNullException(nameof(scope));
+
+            using (Response response = await SendAsync(HttpMethod.Get, scope.SecretsPath + "/public-key", null, ct).ConfigureAwait(false))
             {
-                EnsureSuccess(response, "get the repository public key");
+                EnsureScopeAccess(response, scope);
+                EnsureSuccess(response, scope.IsEnvironment ? "get the environment public key" : "get the repository public key");
                 PublicKeyDto dto = await response.ReadJsonAsync<PublicKeyDto>().ConfigureAwait(false);
 
                 byte[] key = null;
@@ -141,22 +154,27 @@ namespace KeeDroidSign.Core.GitHub
                 }
 
                 if (key == null || key.Length != SealedBox.PublicKeyLength || string.IsNullOrEmpty(dto.KeyId))
-                    throw new GitHubApiException("GitHub returned an invalid repository public key.");
+                    throw new GitHubApiException("GitHub returned an invalid public key.");
 
                 return new RepositoryPublicKey(dto.KeyId, key);
             }
         }
 
         /// <summary>Creates or updates one secret with an already encrypted value (FR-022).</summary>
-        public async Task<SecretWriteResult> PutSecretAsync(RepositoryTarget repo, string name, string encryptedValue,
+        public Task<SecretWriteResult> PutSecretAsync(RepositoryTarget repo, string name, string encryptedValue,
+            string keyId, CancellationToken ct) =>
+            PutSecretAsync(SecretScope.ForRepository(repo), name, encryptedValue, keyId, ct);
+
+        /// <summary>Creates or updates one secret of the scope with an already encrypted value.</summary>
+        public async Task<SecretWriteResult> PutSecretAsync(SecretScope scope, string name, string encryptedValue,
             string keyId, CancellationToken ct)
         {
-            if (repo == null) throw new ArgumentNullException(nameof(repo));
+            if (scope == null) throw new ArgumentNullException(nameof(scope));
             SecretNames.Validate(name);
 
             string body = Json.Serialize(new PutSecretDto { EncryptedValue = encryptedValue, KeyId = keyId });
             var content = new StringContent(body, System.Text.Encoding.UTF8, "application/json");
-            string uri = RepoPath(repo) + "/actions/secrets/" + Uri.EscapeDataString(name);
+            string uri = scope.SecretsPath + "/" + Uri.EscapeDataString(name);
 
             using (Response response = await SendAsync(HttpMethod.Put, uri, content, ct).ConfigureAwait(false))
             {
@@ -170,7 +188,9 @@ namespace KeeDroidSign.Core.GitHub
                     case 201: return new SecretWriteResult(SecretWriteStatus.Created);
                     case 204: return new SecretWriteResult(SecretWriteStatus.Updated);
                     case 403:
-                    case 404: return new SecretWriteResult(SecretWriteStatus.Failed, "Insufficient permissions to write repository secrets.");
+                    case 404: return new SecretWriteResult(SecretWriteStatus.Failed, scope.IsEnvironment
+                        ? "Insufficient permissions to write environment secrets."
+                        : "Insufficient permissions to write repository secrets.");
                     case 422: return new SecretWriteResult(SecretWriteStatus.Failed, "The secret was rejected by GitHub (validation failed).");
                     default: return new SecretWriteResult(SecretWriteStatus.Failed, "GitHub returned HTTP " + (int)response.Status + ".");
                 }
@@ -198,6 +218,18 @@ namespace KeeDroidSign.Core.GitHub
                 default:
                     throw new GitHubApiException($"Could not {action}: GitHub returned HTTP {(int)response.Status}.");
             }
+        }
+
+        /// <summary>Environment-specific errors: a missing environment or no Environments permission.</summary>
+        private static void EnsureScopeAccess(Response response, SecretScope scope)
+        {
+            if (!scope.IsEnvironment || response.Failure != Failure.None)
+                return;
+            if (response.Status == HttpStatusCode.NotFound)
+                throw new EnvironmentNotFoundException(scope.Repository, scope.Environment);
+            if (response.Status == HttpStatusCode.Forbidden)
+                throw new GitHubApiException(
+                    $"The token may not access the secrets of environment '{scope.Environment}' in {scope.Repository} (it needs the Environments permission).");
         }
 
         internal static string RepoPath(RepositoryTarget repo) =>
