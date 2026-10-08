@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="KeeDroidSign.Core.Tests" />
+    <InternalsVisibleTo Include="KeeDroidSign.Tests" />
   </ItemGroup>
 
 </Project>

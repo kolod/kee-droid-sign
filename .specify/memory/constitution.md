@@ -1,7 +1,12 @@
 <!--
 Sync Impact Report
 ==================
-Version change: 1.2.0 → 1.3.0 (MINOR: new technology rule)
+Version change: 1.3.0 → 1.4.0 (MINOR: distribution format and language-level rule)
+Modified sections:
+  - Technology & Platform Constraints — distribution is a single .plgx (dependencies packed as
+    prebuilt DLLs); the plugin project is limited to C# 5 because KeePass compiles PLGX sources
+    with the .NET Framework's built-in compiler; builds must verify PLGX compilation
+Previous amendment 1.2.0 → 1.3.0 (MINOR: new technology rule)
 Modified sections:
   - Technology & Platform Constraints — Android test fixtures (end-to-end signing verification)
     are written in Kotlin in the top-level `android/` folder, never distributed with the plugin
@@ -143,7 +148,14 @@ Rationale: WinForms UI is hard to test; isolating logic keeps the critical paths
   top-level `android/` folder, built with the Gradle wrapper. They are never distributed with the
   plugin, MUST NOT be referenced by the .NET solution, and follow Principles I and III (no secrets
   or signing material committed; `keystore.properties` and keystores are git-ignored).
-- Distribution: a plugin DLL (or `.plgx` if adopted) loadable by stock KeePass 2.x on Windows.
+- Distribution: a single `KeeDroidSign.plgx` file, compiled by KeePass itself when it loads the
+  plugin. Libraries the plugin needs (`KeeDroidSign.Core`, BouncyCastle) are packed into the PLGX as
+  prebuilt DLLs.
+- PLGX language level: KeePass compiles PLGX sources with the .NET Framework's built-in C#
+  compiler, which supports C# 5 only. The plugin project (`src/KeeDroidSign`) MUST therefore use
+  C# 5 syntax, enforced with `<LangVersion>5</LangVersion>`, and every build MUST verify that the
+  PLGX sources compile with that compiler. Projects shipped as prebuilt DLLs (`KeeDroidSign.Core`)
+  and test projects MAY use newer C#.
 - Third-party libraries MUST be compatible with the target framework, permissively licensed,
   and bundled with the plugin; preference is given to the .NET base library and KeePass APIs.
 - User-visible strings MUST be kept in resources so they can be localized (localization files
@@ -168,4 +180,4 @@ Rationale: WinForms UI is hard to test; isolating logic keeps the critical paths
   adding principles or materially expanding guidance, PATCH for clarifications and wording.
 - Reviews of specs, plans, and code MUST verify compliance with these principles.
 
-**Version**: 1.3.0 | **Ratified**: 2026-10-08 | **Last Amended**: 2026-10-08
+**Version**: 1.4.0 | **Ratified**: 2026-10-08 | **Last Amended**: 2026-10-08

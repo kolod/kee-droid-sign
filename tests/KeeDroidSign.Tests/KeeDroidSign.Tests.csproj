@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <PlatformTarget>x64</PlatformTarget>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <KeePassReference Condition="'$(KeePassReference)' == ''">$(MSBuildThisFileDirectory)..\..\artifacts\keepass-ref\KeePass.exe</KeePassReference>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Runtime.Serialization" />
+    <!-- Tests run outside KeePass, so the reference is copied next to them. -->
+    <Reference Include="KeePass">
+      <HintPath>$(KeePassReference)</HintPath>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+    <PackageReference Include="Sodium.Core" Version="1.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- shadowCopy=false: the KeePass reference is public-signed (official public key, no private
+         key). .NET Framework skips strong-name verification only for full-trust assemblies loaded
+         from the application folder, not from xUnit's shadow-copy cache. -->
+    <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Shared fake api.github.com from the core tests. -->
+    <Compile Include="..\KeeDroidSign.Core.Tests\Support\FakeGitHubHandler.cs" Link="Support\FakeGitHubHandler.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\KeeDroidSign\KeeDroidSign.csproj" />
+    <ProjectReference Include="..\..\src\KeeDroidSign.Core\KeeDroidSign.Core.csproj" />
+  </ItemGroup>
+
+</Project>
