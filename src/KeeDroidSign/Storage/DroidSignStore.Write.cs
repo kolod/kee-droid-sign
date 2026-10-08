@@ -11,6 +11,31 @@ namespace KeeDroidSign.Storage
     public sealed partial class DroidSignStore
     {
         /// <summary>
+        /// Stores the app's own export target on its keystore entry (Default removes it) and marks
+        /// the database modified. The database file is not saved here.
+        /// </summary>
+        public void SetExportTarget(AppKeystore app, ExportTargetOverride value)
+        {
+            if (app == null) throw new ArgumentNullException("app");
+            if (value == null) throw new ArgumentNullException("value");
+            if (app.KeystoreEntry == null) throw new InvalidOperationException("The app has no keystore entry.");
+
+            PwEntry entry = app.KeystoreEntry;
+            string stored = value.ToFieldValue();
+            if (stored == null)
+            {
+                if (!entry.Strings.Remove(EntryFields.ExportTarget)) return;
+            }
+            else
+            {
+                if (entry.Strings.ReadSafe(EntryFields.ExportTarget) == stored) return;
+                SetText(entry, EntryFields.ExportTarget, stored);
+            }
+            entry.Touch(true, false);
+            _database.Modified = true;
+        }
+
+        /// <summary>
         /// Creates <c>&lt;root&gt;/&lt;package id&gt;/</c> with the keystore entry and key entry "1".
         /// Validates everything before touching the database.
         /// </summary>
@@ -70,6 +95,17 @@ namespace KeeDroidSign.Storage
         /// <summary>Throws <see cref="ArgumentException"/> naming the invalid field.</summary>
         public static RepositoryTarget ValidateNewApp(NewAppRequest request)
         {
+            RepositoryTarget repository = ValidateAppFields(request);
+            if (request.Subject == null)
+                throw new ArgumentException("The certificate owner is required.");
+            request.Subject.Validate();
+            return repository;
+        }
+
+        /// <summary>Validates package ID, display name and repository only (first step of the window).</summary>
+        public static RepositoryTarget ValidateAppFields(NewAppRequest request)
+        {
+            if (request == null) throw new ArgumentNullException("request");
             if (!IsValidPackageId(request.PackageId))
                 throw new ArgumentException("The package ID must be a valid Android application ID, e.g. com.example.app.");
             if (string.IsNullOrWhiteSpace(request.DisplayName) || request.DisplayName.Trim().Length > 100)
@@ -77,9 +113,6 @@ namespace KeeDroidSign.Storage
             RepositoryTarget repository;
             if (!RepositoryTarget.TryParse(request.Repository, out repository))
                 throw new ArgumentException("The repository must be 'owner/name' or a https://github.com/owner/name URL.");
-            if (request.Subject == null)
-                throw new ArgumentException("The certificate owner is required.");
-            request.Subject.Validate();
             return repository;
         }
 

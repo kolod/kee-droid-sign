@@ -8,16 +8,24 @@ namespace KeeDroidSign.LiveTests
     {
         public const string TokenVariable = "KDS_LIVE_GITHUB_TOKEN";
 
-        private LiveSettings(string token, RepositoryTarget repository, string gitRef, TimeSpan timeout)
+        /// <summary>Value of <c>KDS_LIVE_ENVIRONMENT</c> that selects repository-level secrets.</summary>
+        public const string RepositoryLevel = "-";
+
+        private LiveSettings(string token, RepositoryTarget repository, string environment, string gitRef, TimeSpan timeout)
         {
             Token = token;
             Repository = repository;
+            Scope = new SecretScope(repository, environment);
             Ref = gitRef;
             Timeout = timeout;
         }
 
         public string Token { get; }
         public RepositoryTarget Repository { get; }
+
+        /// <summary>Where the secrets are exported: environment "release" by default.</summary>
+        public SecretScope Scope { get; }
+
         public string Ref { get; }
         public TimeSpan Timeout { get; }
 
@@ -30,17 +38,20 @@ namespace KeeDroidSign.LiveTests
                 throw new InvalidOperationException($"{TokenVariable} is not set.");
 
             string repository = Environment.GetEnvironmentVariable("KDS_LIVE_REPOSITORY");
+            string environment = Environment.GetEnvironmentVariable("KDS_LIVE_ENVIRONMENT");
+            environment = string.IsNullOrWhiteSpace(environment) ? "release" : environment.Trim();
             string gitRef = Environment.GetEnvironmentVariable("KDS_LIVE_REF");
             string minutes = Environment.GetEnvironmentVariable("KDS_LIVE_TIMEOUT_MINUTES");
 
             return new LiveSettings(
                 token.Trim(),
                 RepositoryTarget.Parse(string.IsNullOrWhiteSpace(repository) ? "kolod/kee-droid-sign" : repository),
+                environment == RepositoryLevel ? null : environment,
                 string.IsNullOrWhiteSpace(gitRef) ? "main" : gitRef.Trim(),
                 TimeSpan.FromMinutes(int.TryParse(minutes, out int m) && m > 0 ? m : 20));
         }
 
         public override string ToString() =>
-            $"LiveSettings(Repository={Repository}, Ref={Ref}, Timeout={Timeout.TotalMinutes} min, Token=***)";
+            $"LiveSettings(Scope={Scope}, Ref={Ref}, Timeout={Timeout.TotalMinutes} min, Token=***)";
     }
 }

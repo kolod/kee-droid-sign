@@ -36,6 +36,15 @@ namespace KeeDroidSign.Services
             _passwords = passwords;
         }
 
+        /// <summary>The database the keys are stored in.</summary>
+        public PwDatabase Database { get { return _database; } }
+
+        /// <summary>Resolves a key entry with its app (problems are reported, not thrown).</summary>
+        public KeyContext ResolveKey(PwEntry keyEntry)
+        {
+            return new DroidSignStore(_database, _settings()).ResolveKey(keyEntry);
+        }
+
         public async Task<KeyEntryInfo> CreateAppAsync(NewAppRequest request, CancellationToken ct)
         {
             if (request == null) throw new ArgumentNullException("request");

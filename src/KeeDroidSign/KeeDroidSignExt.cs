@@ -1,5 +1,6 @@
 using System;
 using System.Windows.Forms;
+using KeeDroidSign.Core.GitHub;
 using KeeDroidSign.Properties;
 using KeeDroidSign.Services;
 using KeeDroidSign.Settings;
@@ -77,16 +78,40 @@ namespace KeeDroidSign
             PwDatabase db = ActiveDatabase;
             if (db == null) { MessageService.ShowWarning(Strings.ErrorNoDatabase); return; }
 
-            var form = new NewKeyForm(new KeyService(db, LoadSettings), LoadSettings());
+            bool exportAvailable = new ExportService(LoadSettings).ResolveToken(db) != null;
+            var form = new NewKeyForm(new KeyService(db, LoadSettings), LoadSettings(), exportAvailable);
             DialogResult result = form.ShowDialog(_host.MainWindow);
             KeyEntryInfo created = form.CreatedKey;
             string addKeyTo = form.AddKeyToPackageId;
+            bool export = form.ExportRequested;
             UIUtil.DestroyForm(form);
 
             if (result == DialogResult.OK && created != null)
+            {
+                // Saved first (if enabled), so the exported key is the one stored in the database.
                 ShowInDatabase(db, created.Entry);
+                if (export) ShowExportWizard(db, created.Entry);
+            }
             else if (result == DialogResult.Retry && addKeyTo != null)
+            {
                 ShowAddKey(addKeyTo);
+            }
+        }
+
+        /// <summary>Opens the export wizard for a key entry, as "Export to GitHub" on its DroidSign tab does.</summary>
+        private void ShowExportWizard(PwDatabase db, PwEntry keyEntry)
+        {
+            var export = new ExportService(LoadSettings);
+            GitHubCredential token = export.ResolveToken(db);
+            if (token == null) { MessageService.ShowWarning(Strings.ExportDisabledToken); return; }
+
+            KeyContext key = new DroidSignStore(db, LoadSettings()).ResolveKey(keyEntry);
+            if (key.Problems.Count > 0) return;
+
+            var wizard = new ExportWizardForm(key, db, LoadSettings, export, token,
+                changed => _host.MainWindow.UpdateUI(false, null, false, null, false, null, true));
+            wizard.ShowDialog(_host.MainWindow);
+            UIUtil.DestroyForm(wizard);
         }
 
         private void ShowAddKey(string preselectPackageId)
@@ -113,7 +138,10 @@ namespace KeeDroidSign
 
             PwDatabase db = _host.MainWindow.DocumentManager.FindContainerOf(entry) ?? ActiveDatabase;
             if (db == null) return null;
-            return new EntryTabControl(entry, db, LoadSettings, new ExportService(LoadSettings));
+            // The export target lives on the keystore entry (not the one being edited): refresh the
+            // main window so the database shows as modified; the user saves as usual.
+            return new EntryTabControl(entry, db, LoadSettings, new ExportService(LoadSettings),
+                changed => _host.MainWindow.UpdateUI(false, null, false, null, false, null, true));
         }
 
         private Control CreateOptionsTab(OptionsForm form)

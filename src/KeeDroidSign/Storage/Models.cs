@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using KeeDroidSign.Core.GitHub;
 using KeeDroidSign.Core.Keystore;
+using KeeDroidSign.Settings;
 using KeePassLib;
 using KeePassLib.Security;
 
@@ -99,6 +100,12 @@ namespace KeeDroidSign.Storage
         public IReadOnlyList<KeyEntryInfo> Keys { get { return _keys; } }
         public IReadOnlyList<string> Warnings { get { return _warnings; } }
 
+        /// <summary>The app's own export target from the keystore entry (Default when not set).</summary>
+        public ExportTargetOverride TargetOverride
+        {
+            get { return ExportTargetOverride.Parse(ReadField(EntryFields.ExportTarget)); }
+        }
+
         /// <summary>Name of the attached .jks file, or null.</summary>
         public string KeystoreFileName
         {
@@ -131,6 +138,130 @@ namespace KeeDroidSign.Storage
         private string ReadField(string name)
         {
             return _keystoreEntry == null ? null : _keystoreEntry.Strings.ReadSafe(name);
+        }
+    }
+
+    public enum ExportTargetKind
+    {
+        /// <summary>Use the default environment from the plugin settings.</summary>
+        Default,
+
+        /// <summary>Repository-level secrets.</summary>
+        Repository,
+
+        /// <summary>A named environment.</summary>
+        Environment,
+    }
+
+    /// <summary>Per-app export target stored in <see cref="EntryFields.ExportTarget"/>.</summary>
+    public sealed class ExportTargetOverride
+    {
+        private readonly ExportTargetKind _kind;
+        private readonly string _environment;
+        private readonly bool _invalid;
+
+        private ExportTargetOverride(ExportTargetKind kind, string environment, bool invalid)
+        {
+            _kind = kind;
+            _environment = environment;
+            _invalid = invalid;
+        }
+
+        public static readonly ExportTargetOverride Default = new ExportTargetOverride(ExportTargetKind.Default, null, false);
+        public static readonly ExportTargetOverride Repository = new ExportTargetOverride(ExportTargetKind.Repository, null, false);
+
+        public static ExportTargetOverride ForEnvironment(string name)
+        {
+            EnvironmentNames.Validate(name);
+            return new ExportTargetOverride(ExportTargetKind.Environment, name, false);
+        }
+
+        public ExportTargetKind Kind { get { return _kind; } }
+
+        /// <summary>The environment name for <see cref="ExportTargetKind.Environment"/>, otherwise null.</summary>
+        public string Environment { get { return _environment; } }
+
+        /// <summary>True when the stored value was not understood and the default is used instead.</summary>
+        public bool IsInvalid { get { return _invalid; } }
+
+        /// <summary>Reads a stored value; empty means Default, unknown values mean Default with <see cref="IsInvalid"/>.</summary>
+        public static ExportTargetOverride Parse(string value)
+        {
+            if (string.IsNullOrEmpty(value)) return Default;
+            if (value == EntryFields.ExportTargetRepository) return Repository;
+            if (value.StartsWith(EntryFields.ExportTargetEnvironmentPrefix, StringComparison.Ordinal))
+            {
+                string name = value.Substring(EntryFields.ExportTargetEnvironmentPrefix.Length);
+                if (EnvironmentNames.IsValid(name)) return new ExportTargetOverride(ExportTargetKind.Environment, name, false);
+            }
+            return new ExportTargetOverride(ExportTargetKind.Default, null, true);
+        }
+
+        /// <summary>The value to store, or null to remove the field (Default).</summary>
+        public string ToFieldValue()
+        {
+            switch (_kind)
+            {
+                case ExportTargetKind.Repository: return EntryFields.ExportTargetRepository;
+                case ExportTargetKind.Environment: return EntryFields.ExportTargetEnvironmentPrefix + _environment;
+                default: return null;
+            }
+        }
+    }
+
+    /// <summary>Where a key's secrets go: the app's override, else the default from the settings.</summary>
+    public sealed class ExportTarget
+    {
+        private readonly RepositoryTarget _repository;
+        private readonly string _environment;
+        private readonly bool _fromApp;
+
+        public ExportTarget(RepositoryTarget repository, string environment, bool fromApp)
+        {
+            _repository = repository;
+            _environment = string.IsNullOrEmpty(environment) ? null : environment;
+            _fromApp = fromApp;
+        }
+
+        public RepositoryTarget Repository { get { return _repository; } }
+
+        /// <summary>The environment, or null for repository-level secrets.</summary>
+        public string Environment { get { return _environment; } }
+
+        public bool IsEnvironment { get { return _environment != null; } }
+
+        /// <summary>True when the app overrides the default from the settings.</summary>
+        public bool FromApp { get { return _fromApp; } }
+
+        public static ExportTarget Resolve(AppKeystore app, PluginSettings settings)
+        {
+            if (app == null) throw new ArgumentNullException("app");
+            if (settings == null) throw new ArgumentNullException("settings");
+
+            ExportTargetOverride own = app.TargetOverride;
+            switch (own.Kind)
+            {
+                case ExportTargetKind.Repository: return new ExportTarget(app.Repository, null, true);
+                case ExportTargetKind.Environment: return new ExportTarget(app.Repository, own.Environment, true);
+                default:
+                    string fallback = settings.DefaultEnvironment;
+                    // An invalid default is rejected by the Options tab; never export to a malformed name.
+                    if (!string.IsNullOrEmpty(fallback) && !EnvironmentNames.IsValid(fallback)) fallback = null;
+                    return new ExportTarget(app.Repository, fallback, false);
+            }
+        }
+
+        public SecretScope ToScope()
+        {
+            if (_repository == null) throw new InvalidOperationException("The app has no valid GitHub repository.");
+            return new SecretScope(_repository, _environment);
+        }
+
+        /// <summary>"owner/name" or "owner/name, environment release".</summary>
+        public override string ToString()
+        {
+            string repository = _repository == null ? "?" : _repository.ToString();
+            return _environment == null ? repository : repository + ", environment " + _environment;
         }
     }
 

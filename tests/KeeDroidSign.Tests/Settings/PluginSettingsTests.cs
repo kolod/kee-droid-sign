@@ -99,7 +99,7 @@ namespace KeeDroidSign.Tests.Settings
 
             Assert.Equal(
                 new[] { "Default.CommonName", "Default.Country", "Default.GitHubOwner", "Default.Locality",
-                        "Default.Organization", "Default.OrganizationalUnit", "Default.State",
+                        "Default.Organization", "Default.OrganizationalUnit", "Default.State", "GitHubEnvironment",
                         "KeySize", "PasswordLength", "RootGroup", "SaveAfterKeyChange", "Secret.KeyAlias", "Secret.KeyPassword",
                         "Secret.KeystoreBase64", "Secret.StorePassword", "TokenEntryUuid", "ValidityYears" },
                 store.Values.Keys.OrderBy(k => k, StringComparer.Ordinal));

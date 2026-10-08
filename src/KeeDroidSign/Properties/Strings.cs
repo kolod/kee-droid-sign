@@ -23,9 +23,79 @@ namespace KeeDroidSign.Properties
 
         internal static CultureInfo Culture { get; set; }
 
+        internal static string ActionBranchGroup
+        {
+            get { return ResourceManager.GetString("ActionBranchGroup", Culture); }
+        }
+
+        internal static string ActionBranchProtect
+        {
+            get { return ResourceManager.GetString("ActionBranchProtect", Culture); }
+        }
+
+        internal static string ActionCleanup
+        {
+            get { return ResourceManager.GetString("ActionCleanup", Culture); }
+        }
+
+        internal static string ActionCreateEnvironment
+        {
+            get { return ResourceManager.GetString("ActionCreateEnvironment", Culture); }
+        }
+
+        internal static string ActionExport
+        {
+            get { return ResourceManager.GetString("ActionExport", Culture); }
+        }
+
+        internal static string ActionExportBlocked
+        {
+            get { return ResourceManager.GetString("ActionExportBlocked", Culture); }
+        }
+
+        internal static string ActionLeave
+        {
+            get { return ResourceManager.GetString("ActionLeave", Culture); }
+        }
+
+        internal static string ActionNeedsAdministration
+        {
+            get { return ResourceManager.GetString("ActionNeedsAdministration", Culture); }
+        }
+
+        internal static string ActionProtectNote
+        {
+            get { return ResourceManager.GetString("ActionProtectNote", Culture); }
+        }
+
+        internal static string ActionRestrictEnvironment
+        {
+            get { return ResourceManager.GetString("ActionRestrictEnvironment", Culture); }
+        }
+
+        internal static string ActionTagsGroup
+        {
+            get { return ResourceManager.GetString("ActionTagsGroup", Culture); }
+        }
+
+        internal static string ActionTagsRemove
+        {
+            get { return ResourceManager.GetString("ActionTagsRemove", Culture); }
+        }
+
+        internal static string ActionTagsRestrict
+        {
+            get { return ResourceManager.GetString("ActionTagsRestrict", Culture); }
+        }
+
         internal static string AddKeyInfo
         {
             get { return ResourceManager.GetString("AddKeyInfo", Culture); }
+        }
+
+        internal static string AddKeyOwnerHint
+        {
+            get { return ResourceManager.GetString("AddKeyOwnerHint", Culture); }
         }
 
         internal static string AddKeyTitle
@@ -38,6 +108,11 @@ namespace KeeDroidSign.Properties
             get { return ResourceManager.GetString("AppExistsAskAddKey", Culture); }
         }
 
+        internal static string ButtonBack
+        {
+            get { return ResourceManager.GetString("ButtonBack", Culture); }
+        }
+
         internal static string ButtonCancel
         {
             get { return ResourceManager.GetString("ButtonCancel", Culture); }
@@ -46,6 +121,11 @@ namespace KeeDroidSign.Properties
         internal static string ButtonClear
         {
             get { return ResourceManager.GetString("ButtonClear", Culture); }
+        }
+
+        internal static string ButtonClose
+        {
+            get { return ResourceManager.GetString("ButtonClose", Culture); }
         }
 
         internal static string ButtonCopy
@@ -68,14 +148,34 @@ namespace KeeDroidSign.Properties
             get { return ResourceManager.GetString("ButtonExport", Culture); }
         }
 
+        internal static string ButtonFinish
+        {
+            get { return ResourceManager.GetString("ButtonFinish", Culture); }
+        }
+
+        internal static string ButtonNext
+        {
+            get { return ResourceManager.GetString("ButtonNext", Culture); }
+        }
+
         internal static string ButtonOk
         {
             get { return ResourceManager.GetString("ButtonOk", Culture); }
         }
 
+        internal static string ButtonRun
+        {
+            get { return ResourceManager.GetString("ButtonRun", Culture); }
+        }
+
         internal static string ButtonSelect
         {
             get { return ResourceManager.GetString("ButtonSelect", Culture); }
+        }
+
+        internal static string CheckExportNow
+        {
+            get { return ResourceManager.GetString("CheckExportNow", Culture); }
         }
 
         internal static string ColumnGroup
@@ -88,19 +188,19 @@ namespace KeeDroidSign.Properties
             get { return ResourceManager.GetString("ColumnTitle", Culture); }
         }
 
-        internal static string ConfirmExport
+        internal static string DefaultTargetEnvironment
         {
-            get { return ResourceManager.GetString("ConfirmExport", Culture); }
+            get { return ResourceManager.GetString("DefaultTargetEnvironment", Culture); }
         }
 
-        internal static string ConfirmExportCreate
+        internal static string DefaultTargetRepository
         {
-            get { return ResourceManager.GetString("ConfirmExportCreate", Culture); }
+            get { return ResourceManager.GetString("DefaultTargetRepository", Culture); }
         }
 
-        internal static string ConfirmExportOverwrite
+        internal static string EnvironmentManualSteps
         {
-            get { return ResourceManager.GetString("ConfirmExportOverwrite", Culture); }
+            get { return ResourceManager.GetString("EnvironmentManualSteps", Culture); }
         }
 
         internal static string ErrorNoDatabase
@@ -123,11 +223,6 @@ namespace KeeDroidSign.Properties
             get { return ResourceManager.GetString("ErrorUnexpected", Culture); }
         }
 
-        internal static string ExportCancelledByUser
-        {
-            get { return ResourceManager.GetString("ExportCancelledByUser", Culture); }
-        }
-
         internal static string ExportDisabledProblems
         {
             get { return ResourceManager.GetString("ExportDisabledProblems", Culture); }
@@ -138,14 +233,94 @@ namespace KeeDroidSign.Properties
             get { return ResourceManager.GetString("ExportDisabledToken", Culture); }
         }
 
-        internal static string ExportDone
+        internal static string FindingBranchProtected
         {
-            get { return ResourceManager.GetString("ExportDone", Culture); }
+            get { return ResourceManager.GetString("FindingBranchProtected", Culture); }
+        }
+
+        internal static string FindingBranchUnknown
+        {
+            get { return ResourceManager.GetString("FindingBranchUnknown", Culture); }
+        }
+
+        internal static string FindingBranchUnprotected
+        {
+            get { return ResourceManager.GetString("FindingBranchUnprotected", Culture); }
+        }
+
+        internal static string FindingCopies
+        {
+            get { return ResourceManager.GetString("FindingCopies", Culture); }
+        }
+
+        internal static string FindingEnvironmentAllBranches
+        {
+            get { return ResourceManager.GetString("FindingEnvironmentAllBranches", Culture); }
+        }
+
+        internal static string FindingEnvironmentMissing
+        {
+            get { return ResourceManager.GetString("FindingEnvironmentMissing", Culture); }
+        }
+
+        internal static string FindingEnvironmentNoPatterns
+        {
+            get { return ResourceManager.GetString("FindingEnvironmentNoPatterns", Culture); }
+        }
+
+        internal static string FindingEnvironmentPatterns
+        {
+            get { return ResourceManager.GetString("FindingEnvironmentPatterns", Culture); }
+        }
+
+        internal static string FindingEnvironmentProtectedBranches
+        {
+            get { return ResourceManager.GetString("FindingEnvironmentProtectedBranches", Culture); }
+        }
+
+        internal static string FindingEnvironmentUnknown
+        {
+            get { return ResourceManager.GetString("FindingEnvironmentUnknown", Culture); }
+        }
+
+        internal static string FindingRepositorySecrets
+        {
+            get { return ResourceManager.GetString("FindingRepositorySecrets", Culture); }
+        }
+
+        internal static string FindingSecretsNew
+        {
+            get { return ResourceManager.GetString("FindingSecretsNew", Culture); }
+        }
+
+        internal static string FindingSecretsOverwrite
+        {
+            get { return ResourceManager.GetString("FindingSecretsOverwrite", Culture); }
+        }
+
+        internal static string FindingTagsRestricted
+        {
+            get { return ResourceManager.GetString("FindingTagsRestricted", Culture); }
+        }
+
+        internal static string FindingTagsUnknown
+        {
+            get { return ResourceManager.GetString("FindingTagsUnknown", Culture); }
+        }
+
+        internal static string FindingTagsUnrestricted
+        {
+            get { return ResourceManager.GetString("FindingTagsUnrestricted", Culture); }
         }
 
         internal static string FingerprintHint
         {
             get { return ResourceManager.GetString("FingerprintHint", Culture); }
+        }
+
+        internal static string GitHubEnvironmentHint
+        {
+            get { return ResourceManager.GetString("GitHubEnvironmentHint", Culture); }
         }
 
         internal static string GroupCreated
@@ -186,6 +361,11 @@ namespace KeeDroidSign.Properties
         internal static string LabelDisplayName
         {
             get { return ResourceManager.GetString("LabelDisplayName", Culture); }
+        }
+
+        internal static string LabelGitHubEnvironment
+        {
+            get { return ResourceManager.GetString("LabelGitHubEnvironment", Culture); }
         }
 
         internal static string LabelKeyNumber
@@ -271,6 +451,36 @@ namespace KeeDroidSign.Properties
         internal static string MenuRoot
         {
             get { return ResourceManager.GetString("MenuRoot", Culture); }
+        }
+
+        internal static string NewKeyDoneInfo
+        {
+            get { return ResourceManager.GetString("NewKeyDoneInfo", Culture); }
+        }
+
+        internal static string NewKeyDoneNoToken
+        {
+            get { return ResourceManager.GetString("NewKeyDoneNoToken", Culture); }
+        }
+
+        internal static string NewKeyIntroApp
+        {
+            get { return ResourceManager.GetString("NewKeyIntroApp", Culture); }
+        }
+
+        internal static string NewKeyIntroOwner
+        {
+            get { return ResourceManager.GetString("NewKeyIntroOwner", Culture); }
+        }
+
+        internal static string NewKeyStepDone
+        {
+            get { return ResourceManager.GetString("NewKeyStepDone", Culture); }
+        }
+
+        internal static string NewKeySubtitle
+        {
+            get { return ResourceManager.GetString("NewKeySubtitle", Culture); }
         }
 
         internal static string NewKeyTitle
@@ -413,14 +623,59 @@ namespace KeeDroidSign.Properties
             get { return ResourceManager.GetString("ProblemMissingRepository", Culture); }
         }
 
+        internal static string RadioEnvironment
+        {
+            get { return ResourceManager.GetString("RadioEnvironment", Culture); }
+        }
+
+        internal static string RadioRepositoryLevel
+        {
+            get { return ResourceManager.GetString("RadioRepositoryLevel", Culture); }
+        }
+
+        internal static string RadioUseDefault
+        {
+            get { return ResourceManager.GetString("RadioUseDefault", Culture); }
+        }
+
+        internal static string ResultDone
+        {
+            get { return ResourceManager.GetString("ResultDone", Culture); }
+        }
+
+        internal static string ResultFailed
+        {
+            get { return ResourceManager.GetString("ResultFailed", Culture); }
+        }
+
+        internal static string ResultSkippedCleanup
+        {
+            get { return ResourceManager.GetString("ResultSkippedCleanup", Culture); }
+        }
+
+        internal static string ResultSkippedExport
+        {
+            get { return ResourceManager.GetString("ResultSkippedExport", Culture); }
+        }
+
+        internal static string SectionApp
+        {
+            get { return ResourceManager.GetString("SectionApp", Culture); }
+        }
+
+        internal static string SectionKey
+        {
+            get { return ResourceManager.GetString("SectionKey", Culture); }
+        }
+
+        internal static string SectionOwner
+        {
+            get { return ResourceManager.GetString("SectionOwner", Culture); }
+        }
+
         internal static string StatusCancelled
         {
             get { return ResourceManager.GetString("StatusCancelled", Culture); }
-        }
-
-        internal static string StatusExporting
-        {
-            get { return ResourceManager.GetString("StatusExporting", Culture); }
         }
 
         internal static string StatusGenerating
@@ -428,9 +683,104 @@ namespace KeeDroidSign.Properties
             get { return ResourceManager.GetString("StatusGenerating", Culture); }
         }
 
+        internal static string StatusInspecting
+        {
+            get { return ResourceManager.GetString("StatusInspecting", Culture); }
+        }
+
+        internal static string StatusRunning
+        {
+            get { return ResourceManager.GetString("StatusRunning", Culture); }
+        }
+
         internal static string TabTitle
         {
             get { return ResourceManager.GetString("TabTitle", Culture); }
+        }
+
+        internal static string TargetEnvironmentFmt
+        {
+            get { return ResourceManager.GetString("TargetEnvironmentFmt", Culture); }
+        }
+
+        internal static string TargetHintDefaultEnvironment
+        {
+            get { return ResourceManager.GetString("TargetHintDefaultEnvironment", Culture); }
+        }
+
+        internal static string TargetHintDefaultRepository
+        {
+            get { return ResourceManager.GetString("TargetHintDefaultRepository", Culture); }
+        }
+
+        internal static string TargetHintEnvironment
+        {
+            get { return ResourceManager.GetString("TargetHintEnvironment", Culture); }
+        }
+
+        internal static string TargetHintRepository
+        {
+            get { return ResourceManager.GetString("TargetHintRepository", Culture); }
+        }
+
+        internal static string TargetRemembered
+        {
+            get { return ResourceManager.GetString("TargetRemembered", Culture); }
+        }
+
+        internal static string TargetRepositoryFmt
+        {
+            get { return ResourceManager.GetString("TargetRepositoryFmt", Culture); }
+        }
+
+        internal static string WarningRepositoryCopiesKept
+        {
+            get { return ResourceManager.GetString("WarningRepositoryCopiesKept", Culture); }
+        }
+
+        internal static string WarningRepositoryCopiesUnchecked
+        {
+            get { return ResourceManager.GetString("WarningRepositoryCopiesUnchecked", Culture); }
+        }
+
+        internal static string WizardActions
+        {
+            get { return ResourceManager.GetString("WizardActions", Culture); }
+        }
+
+        internal static string WizardFindings
+        {
+            get { return ResourceManager.GetString("WizardFindings", Culture); }
+        }
+
+        internal static string WizardReviewHeader
+        {
+            get { return ResourceManager.GetString("WizardReviewHeader", Culture); }
+        }
+
+        internal static string WizardStepFmt
+        {
+            get { return ResourceManager.GetString("WizardStepFmt", Culture); }
+        }
+
+        internal static string WizardStepResults
+        {
+            get { return ResourceManager.GetString("WizardStepResults", Culture); }
+        }
+
+        internal static string WizardStepReview
+        {
+            get { return ResourceManager.GetString("WizardStepReview", Culture); }
+        }
+
+        internal static string WizardStepTarget
+        {
+            get { return ResourceManager.GetString("WizardStepTarget", Culture); }
+        }
+
+        internal static string WizardTitle
+        {
+            get { return ResourceManager.GetString("WizardTitle", Culture); }
         }
     }
 }

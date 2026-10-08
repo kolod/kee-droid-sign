@@ -12,9 +12,9 @@ using Xunit.Abstractions;
 namespace KeeDroidSign.LiveTests
 {
     /// <summary>
-    /// End-to-end: generate a key -> export it to the repository secrets -> run the signing workflow ->
-    /// check the APK is signed with exactly that key. Overwrites the repository's signing secrets
-    /// with a throwaway key on every run.
+    /// End-to-end: generate a key -> export it to the signing secrets (environment "release" by
+    /// default) -> run the signing workflow -> check the APK is signed with exactly that key.
+    /// Overwrites the signing secrets with a throwaway key on every run.
     /// </summary>
     public class SigningEndToEndTests
     {
@@ -62,14 +62,14 @@ namespace KeeDroidSign.LiveTests
         {
             string expected = CertificateFingerprint.Compute(keystore.CertificateDer);
             string requestId = Guid.NewGuid().ToString("N");
-            _output.WriteLine("Repository: " + settings.Repository + ", ref: " + settings.Ref);
+            _output.WriteLine("Target: " + settings.Scope + ", ref: " + settings.Ref);
             _output.WriteLine("Request ID: " + requestId);
             _output.WriteLine("Expected SHA-256: " + expected);
 
             using (var client = new GitHubClient(new GitHubCredential(settings.Token)))
             {
                 ExportResult export = await new SecretExporter(client)
-                    .ExportAsync(settings.Repository, keystore, new SecretMapping(), true, CancellationToken.None);
+                    .ExportAsync(settings.Scope, keystore, new SecretMapping(), true, CancellationToken.None);
                 Assert.True(export.Succeeded, "Secret export failed: " + export);
                 _output.WriteLine("Secrets exported: " + export);
             }

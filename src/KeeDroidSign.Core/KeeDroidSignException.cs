@@ -43,7 +43,7 @@ namespace KeeDroidSign.Core
     }
 
     /// <summary>A GitHub API call failed in a way that cannot be expressed as a status value.</summary>
-    public sealed class GitHubApiException : KeeDroidSignException
+    public class GitHubApiException : KeeDroidSignException
     {
         public GitHubApiException(string message) : base(message) { }
     }

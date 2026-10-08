@@ -42,6 +42,7 @@ namespace KeeDroidSign.UI
         private readonly TextBox _defaultState = new TextBox { Width = 260 };
         private readonly TextBox _defaultCountry = new TextBox { MaxLength = 2, CharacterCasing = CharacterCasing.Upper, Width = 40 };
         private readonly TextBox _defaultGitHubOwner = new TextBox { Width = 260 };
+        private readonly TextBox _environment = new TextBox { Width = 260 };
         private readonly Label _error = new Label { AutoSize = true, MaximumSize = new Size(520, 0), ForeColor = Color.Firebrick };
 
         private string _tokenUuid;
@@ -95,6 +96,8 @@ namespace KeeDroidSign.UI
             FormLayout.AddRow(grid, Strings.OptionsSecretStorePassword, _secretStorePassword).Anchor = AnchorStyles.Left;
             FormLayout.AddRow(grid, Strings.OptionsSecretKeyAlias, _secretKeyAlias).Anchor = AnchorStyles.Left;
             FormLayout.AddRow(grid, Strings.OptionsSecretKeyPassword, _secretKeyPassword).Anchor = AnchorStyles.Left;
+            FormLayout.AddRow(grid, Strings.LabelGitHubEnvironment, _environment).Anchor = AnchorStyles.Left;
+            FormLayout.AddNote(grid, Strings.GitHubEnvironmentHint);
             FormLayout.AddRow(grid, string.Empty, _error);
             Controls.Add(grid);
 
@@ -117,6 +120,7 @@ namespace KeeDroidSign.UI
             _defaultState.Text = settings.DefaultState;
             _defaultCountry.Text = settings.DefaultCountry;
             _defaultGitHubOwner.Text = settings.DefaultGitHubOwner;
+            _environment.Text = settings.DefaultEnvironment;
             ShowToken();
             UpdateCreateGroup();
         }
@@ -168,6 +172,7 @@ namespace KeeDroidSign.UI
             result.DefaultState = _defaultState.Text.Trim();
             result.DefaultCountry = _defaultCountry.Text.Trim();
             result.DefaultGitHubOwner = _defaultGitHubOwner.Text.Trim();
+            result.DefaultEnvironment = _environment.Text.Trim();
 
             try
             {

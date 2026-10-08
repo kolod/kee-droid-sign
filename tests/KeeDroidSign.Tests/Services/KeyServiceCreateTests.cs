@@ -19,6 +19,8 @@ namespace KeeDroidSign.Tests.Services
             var s = PluginSettings.Load(new PluginSettingsTests.DictionaryStore());
             s.KeySize = 2048;
             s.PasswordLength = 40;
+            // Repository-level export, as in 1.0.x (environment tests opt in).
+            s.DefaultEnvironment = string.Empty;
             return s;
         }
 
