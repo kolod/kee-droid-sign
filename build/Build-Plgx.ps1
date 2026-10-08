@@ -11,6 +11,10 @@
          so a C# 5 incompatibility fails the build instead of the user's KeePass;
       3. runs "KeePass.exe --plgx-create" to produce the .plgx.
 
+    With -Version X.Y.Z the plugin version in the staged copy of Properties/AssemblyInfo.cs is set to
+    X.Y.Z.0 (the source file is not modified) and verified after compilation; the release workflow
+    passes the version of the pushed tag.
+
     Must run in Windows PowerShell 5.1 (powershell.exe), which runs on .NET Framework and therefore
     has the same CodeDom compiler as KeePass. Build the solution in Release and run
     build/Build-KeePassReference.ps1 first.
@@ -19,7 +23,9 @@
 param(
     [string]$Configuration = 'Release',
     [string]$MinKeePassVersion = '2.61',
-    [int]$TimeoutSeconds = 180
+    [int]$TimeoutSeconds = 180,
+    [ValidatePattern('^\d+\.\d+\.\d+$')]
+    [string]$Version
 )
 
 $ErrorActionPreference = 'Stop'
@@ -60,6 +66,19 @@ foreach ($file in $sources) {
 }
 Copy-Item (Join-Path $pluginDir 'Properties\Strings.resx') (Join-Path $stage 'Properties\Strings.resx')
 foreach ($lib in $libs) { Copy-Item (Join-Path $binDir $lib) (Join-Path $stage "lib\$lib") }
+
+# Stamp the release version into the staged AssemblyInfo.cs only.
+if ($Version) {
+    $assemblyInfo = Join-Path $stage 'Properties\AssemblyInfo.cs'
+    $text = [IO.File]::ReadAllText($assemblyInfo)
+    foreach ($attribute in 'AssemblyVersion', 'AssemblyFileVersion') {
+        $pattern = '\[assembly: ' + $attribute + '\("[^"]*"\)\]'
+        if ($text -notmatch $pattern) { throw "[assembly: $attribute(...)] not found in Properties/AssemblyInfo.cs." }
+        $text = [regex]::Replace($text, $pattern, "[assembly: $attribute(""$Version.0"")]")
+    }
+    [IO.File]::WriteAllText($assemblyInfo, $text, (New-Object System.Text.UTF8Encoding($false)))
+    Write-Host "Staged plugin version: $Version.0"
+}
 
 $xml = New-Object System.Text.StringBuilder
 [void]$xml.AppendLine('<?xml version="1.0" encoding="utf-8"?>')
@@ -123,6 +142,14 @@ if ($product -ne 'KeePass Plugin') {
     throw "The compiled plugin's product name is '$product', so KeePass would ignore it. Set [assembly: AssemblyProduct(""KeePass Plugin"")] in Properties/AssemblyInfo.cs."
 }
 Write-Host "Verified: product name is 'KeePass Plugin'."
+
+if ($Version) {
+    $fileVersion = [Diagnostics.FileVersionInfo]::GetVersionInfo($parameters.OutputAssembly).FileVersion
+    if ($fileVersion -ne "$Version.0") {
+        throw "The compiled plugin's version is '$fileVersion', expected '$Version.0'."
+    }
+    Write-Host "Verified: version is $Version.0."
+}
 Remove-Item -Recurse -Force $verifyDir
 
 # 3. Let KeePass pack the PLGX. Errors open a message box, hence the timeout.
