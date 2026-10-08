@@ -55,7 +55,6 @@
   <data name="ProblemInvalidRepository" xml:space="preserve"><value>the keystore entry URL is not a GitHub repository</value></data>
   <data name="ProblemMissingKeyNumber" xml:space="preserve"><value>this entry has no key number</value></data>
   <data name="StatusExporting" xml:space="preserve"><value>Exporting secrets to {0}...</value></data>
-  <data name="AskOverwrite" xml:space="preserve"><value>These secrets already exist in {0} and will be overwritten:{1}{1}{2}{1}{1}Continue?</value></data>
   <data name="ExportDone" xml:space="preserve"><value>Export to {0} finished:</value></data>
   <data name="ExportCancelledByUser" xml:space="preserve"><value>Export cancelled. Nothing was written.</value></data>
   <data name="ErrorReadKey" xml:space="preserve"><value>The key could not be read: {0}</value></data>
@@ -92,4 +91,7 @@
   <data name="OptionsGitHubOwner" xml:space="preserve"><value>GitHub owner (user or organization):</value></data>
   <data name="OptionsSaveAfterKeyChange" xml:space="preserve"><value>Save the database automatically after a key is created or added</value></data>
   <data name="ErrorOpenBrowser" xml:space="preserve"><value>The browser could not be opened: {0}</value></data>
+  <data name="ConfirmExport" xml:space="preserve"><value>Export the signing key's secrets to the GitHub repository {0}?</value></data>
+  <data name="ConfirmExportCreate" xml:space="preserve"><value>New secrets:</value></data>
+  <data name="ConfirmExportOverwrite" xml:space="preserve"><value>Existing secrets that will be overwritten:</value></data>
 </root>

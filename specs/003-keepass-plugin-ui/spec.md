@@ -229,8 +229,9 @@ names.
 - **FR-012**: The tab MUST provide **Export to GitHub**, which exports the four secrets
   (`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`,
   `ANDROID_KEY_PASSWORD`, names from settings) for this key to the repository in the keystore
-  entry's URL, using the feature-001 exporter: list conflicts, ask before overwriting, show
-  per-secret results.
+  entry's URL, using the feature-001 exporter. Before every export it MUST ask for confirmation
+  naming the target repository and the secrets to create and to overwrite (security review
+  2026-10-08), then show per-secret results.
 - **FR-013**: The GitHub token MUST be read at export time from the Password field of the KeePass
   entry selected in the settings (FR-014); only that entry's UUID is stored in the settings. If no
   entry is selected or it no longer exists, export is disabled with an explanation. The token MUST

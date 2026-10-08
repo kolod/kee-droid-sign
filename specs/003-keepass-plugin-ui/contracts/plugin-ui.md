@@ -42,7 +42,7 @@ key's certificate subject, key size/validity from settings. Shows the number the
 | Repository | `https://github.com/<owner>/<name>` link built from the parsed URL (opens in the system browser; plain text if the URL is not a GitHub repository), with **Export to GitHub** on the same row |
 | **Export to GitHub** | enabled when repository, attachment and token entry are available; otherwise disabled with the reason as tooltip/label |
 
-Export flow: plan → if conflicts, `AskYesNo` listing names to overwrite → export → result list
+Export flow: plan → `AskYesNo` naming the target repository, the secrets to create and those to overwrite (always, not only on conflicts) → export → result list
 (`name: Created/Updated/Failed (reason)`).
 
 ## Options dialog tab "DroidSign"

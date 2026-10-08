@@ -151,17 +151,13 @@ namespace KeeDroidSign.UI
             try
             {
                 ExportPlan plan = await _export.PlanAsync(_key, token, _running.Token);
-                bool overwrite = false;
-                if (plan.ToOverwrite.Count > 0)
+                // Always confirm, naming the target repository (and any secrets to be overwritten).
+                if (!MessageService.AskYesNo(ExportConfirmation.Build(repository, plan)))
                 {
-                    overwrite = MessageService.AskYesNo(string.Format(Strings.AskOverwrite, repository,
-                        Environment.NewLine, string.Join(Environment.NewLine, plan.ToOverwrite)));
-                    if (!overwrite)
-                    {
-                        _exportStatus.Text = Strings.ExportCancelledByUser;
-                        return;
-                    }
+                    _exportStatus.Text = Strings.ExportCancelledByUser;
+                    return;
                 }
+                bool overwrite = plan.ToOverwrite.Count > 0;
 
                 ExportResult result = await _export.ExportAsync(_key, token, overwrite, _running.Token);
                 _exportStatus.ForeColor = result.Succeeded ? Color.DarkGreen : Color.Firebrick;

@@ -46,7 +46,7 @@ Reference project: `kolod/whiskergrid` (`release.yml`, `app/build.gradle.kts`, v
     (FR-011).
   - Steps (signing job): checkout → wrapper validation → setup-java 21 → setup-gradle →
     **check secrets** (fails with `::error::` naming each missing secret) → decode keystore →
-    write `keystore.properties` (reference heredoc, unchanged) → `:app:assembleRelease` →
+    write `keystore.properties` (originally the reference heredoc; since the 2026-10-08 security review secrets are passed via `env:` and escaped for `.properties`) → `:app:assembleRelease` →
     `apksigner verify --print-certs` → convert the `SHA-256 digest` line to `AA:BB:...` → write
     `signing-report.json` + job summary → upload artifacts `sample-apk` and `signing-report` →
     `if: always()` cleanup of keystore and properties (FR-010).
