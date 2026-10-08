@@ -54,6 +54,23 @@ namespace KeeDroidSign.UI
             return label;
         }
 
+        /// <summary>A bold section title spanning both columns.</summary>
+        public static Label AddSection(TableLayoutPanel grid, string text)
+        {
+            int row = grid.RowCount++;
+            grid.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            var label = new Label
+            {
+                Text = text,
+                AutoSize = true,
+                Font = new Font(SystemFonts.MessageBoxFont, FontStyle.Bold),
+                Margin = new Padding(3, row == 0 ? 3 : 12, 3, 3),
+            };
+            grid.Controls.Add(label, 0, row);
+            grid.SetColumnSpan(label, 2);
+            return label;
+        }
+
         public static FlowLayoutPanel CreateButtonBar(params Button[] buttons)
         {
             var bar = new FlowLayoutPanel

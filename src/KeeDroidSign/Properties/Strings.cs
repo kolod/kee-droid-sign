@@ -188,6 +188,16 @@ namespace KeeDroidSign.Properties
             get { return ResourceManager.GetString("ColumnTitle", Culture); }
         }
 
+        internal static string CreateGroupInfo
+        {
+            get { return ResourceManager.GetString("CreateGroupInfo", Culture); }
+        }
+
+        internal static string CreateGroupTitle
+        {
+            get { return ResourceManager.GetString("CreateGroupTitle", Culture); }
+        }
+
         internal static string DefaultTargetEnvironment
         {
             get { return ResourceManager.GetString("DefaultTargetEnvironment", Culture); }
@@ -201,6 +211,16 @@ namespace KeeDroidSign.Properties
         internal static string EnvironmentManualSteps
         {
             get { return ResourceManager.GetString("EnvironmentManualSteps", Culture); }
+        }
+
+        internal static string ErrorGroupExists
+        {
+            get { return ResourceManager.GetString("ErrorGroupExists", Culture); }
+        }
+
+        internal static string ErrorGroupName
+        {
+            get { return ResourceManager.GetString("ErrorGroupName", Culture); }
         }
 
         internal static string ErrorNoDatabase
@@ -323,11 +343,6 @@ namespace KeeDroidSign.Properties
             get { return ResourceManager.GetString("GitHubEnvironmentHint", Culture); }
         }
 
-        internal static string GroupCreated
-        {
-            get { return ResourceManager.GetString("GroupCreated", Culture); }
-        }
-
         internal static string HintPackageId
         {
             get { return ResourceManager.GetString("HintPackageId", Culture); }
@@ -366,6 +381,11 @@ namespace KeeDroidSign.Properties
         internal static string LabelGitHubEnvironment
         {
             get { return ResourceManager.GetString("LabelGitHubEnvironment", Culture); }
+        }
+
+        internal static string LabelGroupName
+        {
+            get { return ResourceManager.GetString("LabelGroupName", Culture); }
         }
 
         internal static string LabelKeyNumber
@@ -503,14 +523,19 @@ namespace KeeDroidSign.Properties
             get { return ResourceManager.GetString("OptionsDefaultCommonNameHint", Culture); }
         }
 
-        internal static string OptionsDefaultsHeader
-        {
-            get { return ResourceManager.GetString("OptionsDefaultsHeader", Culture); }
-        }
-
         internal static string OptionsGitHubOwner
         {
             get { return ResourceManager.GetString("OptionsGitHubOwner", Culture); }
+        }
+
+        internal static string OptionsGitHubOwnerHint
+        {
+            get { return ResourceManager.GetString("OptionsGitHubOwnerHint", Culture); }
+        }
+
+        internal static string OptionsNewKeysInfo
+        {
+            get { return ResourceManager.GetString("OptionsNewKeysInfo", Culture); }
         }
 
         internal static string OptionsNoDatabase
@@ -553,14 +578,39 @@ namespace KeeDroidSign.Properties
             get { return ResourceManager.GetString("OptionsSecretKeystore", Culture); }
         }
 
-        internal static string OptionsSecretsHeader
+        internal static string OptionsSecretsInfo
         {
-            get { return ResourceManager.GetString("OptionsSecretsHeader", Culture); }
+            get { return ResourceManager.GetString("OptionsSecretsInfo", Culture); }
         }
 
         internal static string OptionsSecretStorePassword
         {
             get { return ResourceManager.GetString("OptionsSecretStorePassword", Culture); }
+        }
+
+        internal static string OptionsSectionDatabase
+        {
+            get { return ResourceManager.GetString("OptionsSectionDatabase", Culture); }
+        }
+
+        internal static string OptionsSectionGitHub
+        {
+            get { return ResourceManager.GetString("OptionsSectionGitHub", Culture); }
+        }
+
+        internal static string OptionsTabGeneral
+        {
+            get { return ResourceManager.GetString("OptionsTabGeneral", Culture); }
+        }
+
+        internal static string OptionsTabNewKeys
+        {
+            get { return ResourceManager.GetString("OptionsTabNewKeys", Culture); }
+        }
+
+        internal static string OptionsTabSecrets
+        {
+            get { return ResourceManager.GetString("OptionsTabSecrets", Culture); }
         }
 
         internal static string OptionsTokenEntry
