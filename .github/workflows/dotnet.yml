@@ -1,0 +1,53 @@
+name: .NET build and test
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "android/**"
+      - "**/*.md"
+  pull_request:
+    paths-ignore:
+      - "android/**"
+      - "**/*.md"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "10.0.x"
+
+      # KeePass is built from the submodule with the official public key so the plugin binds to
+      # stock KeePass (see build/Build-KeePassReference.ps1).
+      - name: Build KeePass reference
+        shell: pwsh
+        run: ./build/Build-KeePassReference.ps1
+
+      - name: Build
+        run: dotnet build KeeDroidSign.sln -c Release
+
+      # The live end-to-end test is skipped without KDS_LIVE_GITHUB_TOKEN.
+      - name: Test
+        run: dotnet test KeeDroidSign.sln -c Release --no-build
+
+      # KeePass compiles the PLGX with the .NET Framework C# compiler; the script verifies that first.
+      - name: Build PLGX
+        shell: powershell
+        run: ./build/Build-Plgx.ps1
+
+      - name: Upload PLGX
+        uses: actions/upload-artifact@v7
+        with:
+          name: KeeDroidSign-plgx
+          path: artifacts/plgx/KeeDroidSign.plgx
+          if-no-files-found: error
