@@ -40,24 +40,19 @@ namespace KeeDroidSign.Storage
     {
         private readonly PwEntry _entry;
         private readonly int _number;
-        private readonly bool _titleMismatch;
 
-        public KeyEntryInfo(PwEntry entry, int number, bool titleMismatch)
+        public KeyEntryInfo(PwEntry entry, int number)
         {
             _entry = entry;
             _number = number;
-            _titleMismatch = titleMismatch;
         }
 
         public PwEntry Entry { get { return _entry; } }
 
-        /// <summary>Key number; also the alias inside the keystore.</summary>
+        /// <summary>Key number (the entry title); also the alias inside the keystore.</summary>
         public int Number { get { return _number; } }
 
         public string Alias { get { return _number.ToString(CultureInfo.InvariantCulture); } }
-
-        /// <summary>True when the user renamed the entry so its title no longer equals the number.</summary>
-        public bool TitleMismatch { get { return _titleMismatch; } }
     }
 
     /// <summary>An app group with its keystore entry and key entries.</summary>
@@ -91,6 +86,15 @@ namespace KeeDroidSign.Storage
 
         /// <summary>Null when the URL is missing or not a GitHub repository.</summary>
         public RepositoryTarget Repository { get { return _repository; } }
+
+        /// <summary>
+        /// "https://github.com/owner/name" built from the parsed repository (never the raw URL field,
+        /// so only GitHub pages can be opened); null when the URL is not a GitHub repository.
+        /// </summary>
+        public string RepositoryWebUrl
+        {
+            get { return _repository == null ? null : "https://github.com/" + _repository.Owner + "/" + _repository.Name; }
+        }
 
         public IReadOnlyList<KeyEntryInfo> Keys { get { return _keys; } }
         public IReadOnlyList<string> Warnings { get { return _warnings; } }

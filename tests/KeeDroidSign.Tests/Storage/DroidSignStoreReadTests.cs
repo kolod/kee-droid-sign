@@ -62,6 +62,22 @@ namespace KeeDroidSign.Tests.Storage
             Assert.Empty(app.Warnings);
         }
 
+        [Theory]
+        [InlineData("https://github.com/octo/app", "https://github.com/octo/app")]
+        [InlineData("octo/app", "https://github.com/octo/app")]
+        [InlineData("https://github.com/octo/app.git", "https://github.com/octo/app")]
+        [InlineData("https://evil.example.com/octo/app", null)]
+        [InlineData("javascript:alert(1)", null)]
+        public void RepositoryWebUrl_IsBuiltFromParsedRepositoryOnly(string url, string expected)
+        {
+            var pd = TestDatabase.Create();
+            TestDatabase.AddApp(pd, "DroidSign", "com.example.app", TestDatabase.Keystore(), url);
+
+            AppKeystore app = new DroidSignStore(pd, Settings()).FindApp("com.example.app");
+
+            Assert.Equal(expected, app.RepositoryWebUrl);
+        }
+
         [Fact]
         public void TwoKeystoreEntries_FirstIsUsedWithWarning()
         {
@@ -108,13 +124,12 @@ namespace KeeDroidSign.Tests.Storage
             Assert.Equal(TestDatabase.KeyPassword, key.KeyPassword);
             Assert.Equal(ks.Content, key.KeystoreContent);
             Assert.Equal("octo/app", key.App.Repository.ToString());
-            Assert.False(key.Key.TitleMismatch);
             Assert.DoesNotContain(TestDatabase.StorePassword, key.ToString());
             Assert.DoesNotContain(TestDatabase.KeyPassword, key.ToString());
         }
 
         [Fact]
-        public void ResolveKey_TitleMismatch_UsesNumberFromMarker()
+        public void ResolveKey_NonNumericTitle_IsReportedAsMissingKeyNumber()
         {
             var pd = TestDatabase.Create();
             PwGroup group = TestDatabase.AddApp(pd, "DroidSign", "com.example.app", TestDatabase.Keystore());
@@ -123,8 +138,21 @@ namespace KeeDroidSign.Tests.Storage
 
             KeyContext key = new DroidSignStore(pd, Settings()).ResolveKey(renamed);
 
-            Assert.Equal("1", key.Alias);
-            Assert.True(key.Key.TitleMismatch);
+            Assert.Null(key.Key);
+            Assert.Contains(KeyProblem.MissingKeyNumber, key.Problems);
+        }
+
+        [Fact]
+        public void ResolveKey_AliasComesFromTitle_LegacyKeyNumberFieldIsIgnored()
+        {
+            var pd = TestDatabase.Create();
+            PwGroup group = TestDatabase.AddApp(pd, "DroidSign", "com.example.app", TestDatabase.Keystore(), keyNumbers: 2);
+            PwEntry entry = group.Entries.First(DroidSignStore.IsKeyEntry);
+            entry.Strings.Set("DroidSign.KeyNumber", new ProtectedString(false, "1")); // written by plugin 1.0.0
+
+            KeyContext key = new DroidSignStore(pd, Settings()).ResolveKey(entry);
+
+            Assert.Equal("2", key.Alias);
         }
 
         [Fact]

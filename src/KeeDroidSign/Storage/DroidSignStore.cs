@@ -109,14 +109,15 @@ namespace KeeDroidSign.Storage
             foreach (PwEntry entry in group.Entries.Where(IsKeyEntry))
             {
                 int number;
-                if (!int.TryParse(entry.Strings.ReadSafe(EntryFields.KeyNumber), NumberStyles.None,
-                        CultureInfo.InvariantCulture, out number) || number <= 0)
+                // The title is the key number, which is also the alias inside the keystore.
+                string title = entry.Strings.ReadSafe(PwDefs.TitleField).Trim();
+                if (!int.TryParse(title, NumberStyles.None, CultureInfo.InvariantCulture, out number) || number <= 0)
                 {
-                    warnings.Add("A key entry has no valid key number and is ignored.");
+                    warnings.Add(string.Format(CultureInfo.InvariantCulture,
+                        "The key entry '{0}' is ignored: its title must be the key number (1, 2, ...).", title));
                     continue;
                 }
-                string title = entry.Strings.ReadSafe(PwDefs.TitleField);
-                keys.Add(new KeyEntryInfo(entry, number, title != number.ToString(CultureInfo.InvariantCulture)));
+                keys.Add(new KeyEntryInfo(entry, number));
             }
 
             PwEntry keystoreEntry = keystoreEntries.FirstOrDefault();
