@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.X509;
@@ -50,7 +52,7 @@ namespace KeeDroidSign.Core.Keystore
             return cert.GetEncoded();
         }
 
-        private static JksStore Load(byte[] content, string storePassword)
+        internal static JksStore Load(byte[] content, string storePassword)
         {
             if (content == null) throw new ArgumentNullException(nameof(content));
             if (storePassword == null) throw new ArgumentNullException(nameof(storePassword));
@@ -70,7 +72,14 @@ namespace KeeDroidSign.Core.Keystore
             return store;
         }
 
-        private static string NormalizeAlias(string alias)
+        /// <summary>Aliases of all private-key entries, sorted ordinally; only the store password is needed.</summary>
+        public static IReadOnlyList<string> ListKeyAliases(byte[] content, string storePassword)
+        {
+            JksStore store = Load(content, storePassword);
+            return store.Aliases.Where(store.IsKeyEntry).OrderBy(a => a, StringComparer.Ordinal).ToList();
+        }
+
+        internal static string NormalizeAlias(string alias)
         {
             if (string.IsNullOrEmpty(alias)) throw new ArgumentException("The alias is required.", nameof(alias));
             return alias.ToLowerInvariant();
